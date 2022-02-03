@@ -1,7 +1,7 @@
 ---
-title: "Final Project Data Memo"
+title: "Final Project Data Memo_Revised"
 author: "Joseph Chang, Akul Bajaj, Tom Wei"
-date: "1/18/2022"
+date: "2/3/2022"
 output: pdf_document
 ---
 
@@ -25,12 +25,27 @@ https://www.kaggle.com/annettecatherinepaul/nba-salaries
 
 https://www.basketball-reference.com/contracts/players.html 
 
+\textcolor{red}{Added:}
 https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba2021_advanced.csv
 
-https://www.kaggle.com/arafbeatz/202021-nba-player-stats-per-game
 
 **About how many observations? How many predictors?**
 Observations are  statistics of each NBA player, such as points per game. The predictor will be their salary in the next year.
+
+\textcolor{red}{Feedback:}
+
+NBA data should work for a final project.
+
+You can use multiple datasets for the project as long as you can merge or join them together; https://hollyemblem.medium.com/joining-data-with-dplyr-in-r-874698eb8898 See there for more information on how to join datasets.
+
+How many observations will you have? That's one of my main concerns. If there's only one row per player, how many rows is that?
+
+Let's meet and talk about this this week, either after class or during my office hours. Then you can resubmit the memo based on the conversation and I'll regrade it.
+
+\textcolor{red}{Revised:}
+There are 481 players in our dataset, which means there will be 481 observations. We will merge the two datasets -the salary dataset and the Nba 2020-2021 Season Player Stats dataset by players' names.
+
+
 
 **What types of variables will you be working with?**
 Most of our variables will be numerical. Character and logical variables will also exist.
