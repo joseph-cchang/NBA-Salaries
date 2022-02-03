@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **What does it include?**
 
-Our data set includes NBA players and their salaries, the team they play for, their ranking, and more statistics regarding the individual players.
+Our data set includes NBA players and their salaries, the team they play for, their ranking on the team in terms of salary, and more statistics regarding the individual players, such as PPG, MPG, PER, etc.
 
 
 **Where and how will you be obtaining it? Include the link and source.**
@@ -30,7 +30,7 @@ https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba20
 
 
 **About how many observations? How many predictors?**
-Observations are  statistics of each NBA player, such as points per game. The predictor will be their salary in the next year.
+Observations are basketball statistics of each NBA player, such as points per game, PER, APG, etc. The predictor will be their salary in the next year.
 
 \textcolor{red}{Feedback:}
 
