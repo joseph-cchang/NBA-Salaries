@@ -27,9 +27,9 @@ labels <- c('Position', 'Age', 'Team', 'Games', 'Games Started', 'Minutes played
 
 
 # INCORRECT STATISTICS!! This only shows only 2021 (Jan to May?)
-bball_data_per_game <- read.csv("nba2021_per_game.csv", na= "XXX")
-bball_data_per_game
 
+bball_data_per_game <- read.csv("nba2021_per_game.csv", col.names =c('Player','Position', 'Age', 'Team', 'Games', 'Games Started', 'Minutes played', 'field goals', 'field goal attempted', 'field goal percentage', '3-point field goals', '3-point field goals attempted', 'three-point percentage', '2-field goals', '2-point field goals attempted', '2-point percentage', 'effective field goal percentage', 'free throws', 'free throws attempted', 'free throw percentage', 'offensive rebounds', 'defensive rebounds','total rebounds', 'assists', 'steals','blocks','turnovers' , 'fouls','points per game'), na= "XXX")
+bball_data_per_game
 
 ```
 
