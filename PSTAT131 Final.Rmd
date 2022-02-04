@@ -6,18 +6,49 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=7, fig.height=5, echo =TRUE)
+options(digits = 4)
 ```
 
-## Rmarkdown
+## packages
 
+```{r}
+install.packages("tidyverse")
+library(tidyverse)
+```
+
+## read data
 ```{r}
 # this is where we will input the data 
+bball_data_advanced <- read.csv("nba2021_advanced.csv", na= "XXX")
+bball_data_advanced
+
+labels <- c('Position', 'Age', 'Team', 'Games', 'Games Started', 'Minutes played', 'field goals', 'field goal attempted', 'field goal percentage', '3-point field goals', '3-point field goals attempted', 'three-point percentage', '2-field goals', '2-point field goals attempted', '2-point percentage', 'effective field goal percentage', 'free throws', 'free throws attempted', 'free throw percentage', 'offensive rebounds', 'defensive rebounds','total rebounds', 'assists', 'steals','blocks','turnovers' , 'fouls','points per game')
+
+
+# INCORRECT STATISTICS!! This only shows only 2021 (Jan to May?)
+bball_data_per_game <- read.csv("nba2021_per_game.csv", na= "XXX")
+bball_data_per_game
+
 
 ```
 
-## xxxxx
+## Merge data?
 ```{r}
+# this is where we (may) merge data
+
 
 ```
+
+## filter data
+```{r}
+# this is where we filter data by certain statistics
+
+# filter players with over 25 PPG along with other of their main statistics
+points_per_game_only <- bball_data_per_game %>% filter(PTS > 25.0) %>% select(Player, G:MP, TRB:BLK, PTS)
+points_per_game_only
+
+
+```
+
 
