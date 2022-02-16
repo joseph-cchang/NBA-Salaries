@@ -1,7 +1,7 @@
 ---
 title: "PSTAT131 Final Project"
-author: "Joseph Chang"
-date: "3/14/2022"
+author: "Joseph Chang, Tom Wei, Akul Bajaj"
+date: "3/11/2022"
 output: pdf_document
 ---
 
@@ -20,12 +20,20 @@ library(tidyverse)
 ## read data
 ```{r}
 # this is where we will input the data 
-bball_data_advanced <- read.csv("nba2021_advanced.csv", na= "XXX")
+
+# first data 
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting percentage', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percetage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
+
+bball_data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 bball_data_advanced
 
-labels <- c('Position', 'Age', 'Team', 'Games', 'Games Started', 'Minutes played', 'field goals', 'field goal attempted', 'field goal percentage', '3-point field goals', '3-point field goals attempted', 'three-point percentage', '2-field goals', '2-point field goals attempted', '2-point percentage', 'effective field goal percentage', 'free throws', 'free throws attempted', 'free throw percentage', 'offensive rebounds', 'defensive rebounds','total rebounds', 'assists', 'steals','blocks','turnovers' , 'fouls','points per game')
+# second data
+bball_data_txt <- read.delim("NBA_stats.txt")
+bball_data_txt
+#dat <- read.table("NBA_stats.txt", header = FALSE, col.names = colunms)
+str(bball_data_txt)
 
-
+# third data
 # INCORRECT STATISTICS!! This only shows only 2021 (Jan to May?)
 
 bball_data_per_game <- read.csv("nba2021_per_game.csv", col.names =c('Player','Position', 'Age', 'Team', 'Games', 'Games Started', 'Minutes played', 'field goals', 'field goal attempted', 'field goal percentage', '3-point field goals', '3-point field goals attempted', 'three-point percentage', '2-field goals', '2-point field goals attempted', '2-point percentage', 'effective field goal percentage', 'free throws', 'free throws attempted', 'free throw percentage', 'offensive rebounds', 'defensive rebounds','total rebounds', 'assists', 'steals','blocks','turnovers' , 'fouls','points per game'), na= "XXX")
@@ -36,8 +44,6 @@ bball_data_per_game
 ## Merge data?
 ```{r}
 # this is where we (may) merge data
-
-
 ```
 
 ## filter data
@@ -48,7 +54,35 @@ bball_data_per_game
 points_per_game_only <- bball_data_per_game %>% filter(PTS > 25.0) %>% select(Player, G:MP, TRB:BLK, PTS)
 points_per_game_only
 
+# filter by keeping only certain predictors
+wanted_predictors <- bball_data_advanced %>% select(Player, Age, Minutes.played:true.shooting.percentage, usage.rate, win.shares:Value.Over.Replacement)
+wanted_predictors
+```
+
+## Correlation
+```{r}
 
 ```
+
+
+## training and testing data
+```{r}
+# Set random seed
+set.seed(3112022)
+
+# Sample 50% observations as training data
+train = sample(1:nrow(seats), 200)
+seats.train = seats[train,]
+
+# The rest 50% as test data
+seats.test = seats[-train,]
+```
+
+
+
+
+
+
+
 
 
