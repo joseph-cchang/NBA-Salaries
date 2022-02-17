@@ -62,8 +62,9 @@ bball_data_per_game
 
 ## Merge data?
 ```{r}
-# this is where we (may) merge data
-merge(bball, bball_data_advanced, by='Player')
+# this is where we merge data
+ans <- merge(bball, bball_data_advanced, by ='Player')
+subset(ans, select= -c(4,5))
 
 ```
 
@@ -84,8 +85,8 @@ wanted_predictors
 ## Correlation
 ```{r}
 # correlation to see  vs 
-bball_data_advanced %>% select(-c(Player, Position, Team)) %>% cor() %>% round(5) %>% filter(cor()>0.9)
-
+my_cor <- bball_data_advanced %>% select(-c(Player, Position, Team)) %>% cor() %>% round(5) 
+my_cor[(abs(my_cor) > 0.8)] 
 ```
 ## Plot
 ```{r}
@@ -105,8 +106,8 @@ summary(fit)
 # Set random seed
 set.seed(3112022)
 
-# Sample 50% observations as training data
-train = sample(1:nrow(seats), 200)
+# Sample 70% observations as training data
+train = sample(1:nrow(seats), 648*0.7)
 seats.train = seats[train,]
 
 # The rest 50% as test data
