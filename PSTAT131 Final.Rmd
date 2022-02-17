@@ -27,45 +27,30 @@ library(pander)
 ```{r}
 # this is where we will input the data 
 
-# first data 
+# first dataset
 labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting percentage', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
-
-bball_data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
-bball_data_advanced
-
+data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
+data_advanced
 
 
-# second data
-bball_data_txt <- read.delim("NBA_stats.txt")
-bball_data_txt <- read.table("NBA_stats.txt", col.names = c('Rank','Player','Position','Age','Team', 'Games','Games Started', 'Minutes Played', 'field goals', 'field goal attempted', 'field goal percentage', '3-point field goals', '3-point field goals attempted', '3-point percentage', '2-field goals', '2-point field goals attempted', '2-point percentage', 'effective field goal percentage', 'free throws', 'free throws attempted', 'free throw percentage', 'offensive rebounds', 'defensive rebounds','total rebounds', 'assists', 'steals','blocks','turnovers','fouls','Points per game'), na = "XXX")
-data.frame(bball_data_txt)
-
-str(bball_data_txt)
-glimpse(bball_data_txt)
-
-
-# another data
+# second dataset
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics
-mydf <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
+bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
 my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games Played', 'MPG', 'Minutes%', 'Usage Rate' , 'Turnover rate', 'free throws attempted', 'free throw percentage', '2-point field goals attempted', '2-point percentage', '3-point field goals attempted', 'three-point percentage', 'effective shooting percentage' , 'True shooting percentage', 'PPG', 'RPG', 'Total rebound percentage', 'APG', 'Assist percentage', 'SPG' ,'BPG', 'TPG', 'Versatility Index', 'Offensive Rating' , 'Defensive rating')
-colnames(mydf) <- my_colnames
-bball <- mydf[-1,-1]
-  
-
-
-# third data
-# INCORRECT STATISTICS!! This only shows only 2021 (Jan to May?)
-bball_data_per_game <- read.csv("nba2021_per_game.csv", col.names =c('Player','Position', 'Age', 'Team', 'Games', 'Games Started', 'Minutes played', 'field goals', 'field goal attempted', 'field goal percentage', '3-point field goals', '3-point field goals attempted', 'three-point percentage', '2-field goals', '2-point field goals attempted', '2-point percentage', 'effective field goal percentage', 'free throws', 'free throws attempted', 'free throw percentage', 'offensive rebounds', 'defensive rebounds','total rebounds', 'assists', 'steals','blocks','turnovers' , 'fouls','points per game'), na= "XXX")
-bball_data_per_game
-
+colnames(bball_stats) <- my_colnames
+new_bball_stats <- bball_stats[-1,-1]
 ```
 
 ## Merge data?
 ```{r}
 # this is where we merge data
-ans <- merge(bball, bball_data_advanced, by ='Player')
-subset(ans, select= -c(4,5))
+master_data <- merge(data_advanced, new_bball_stats, by ='Player', no.dups = TRUE)
+subset(master_data, select= -c(,,3,4,27,28,29,30))
 
+?merge
+
+str(bball)
+glimpse(bball)
 ```
 
 ## filter data
