@@ -14,7 +14,7 @@ options(digits = 4)
 ## packages
 
 ```{r}
-install.packages("tidyverse")
+#install.packages("tidyverse")
 library(tidyverse)
 library(knitr)
 library(dplyr)
@@ -73,7 +73,19 @@ wanted_predictors
 ## Correlation
 ```{r}
 # correlation to see  vs 
-bball_data_advanced %>% select(-c(Player, Position, Team)) %>% cor() %>% round(5) 
+bball_data_advanced %>% select(-c(Player, Position, Team)) %>% cor() %>% round(5) %>% filter(cor()>0.9)
+
+```
+## Plot
+```{r}
+plot()
+```
+
+
+## Linear regression?
+```{r}
+fit <- lm(Minutes.played ~ ., data = bball_data_advanced)
+summary(fit)
 ```
 
 
