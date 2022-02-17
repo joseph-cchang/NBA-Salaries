@@ -28,29 +28,28 @@ library(pander)
 # this is where we will input the data 
 
 # first dataset
-labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting percentage', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
-data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
-data_advanced
-
-
-# second dataset
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
 my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games Played', 'MPG', 'Minutes%', 'Usage Rate' , 'Turnover rate', 'free throws attempted', 'free throw percentage', '2-point field goals attempted', '2-point percentage', '3-point field goals attempted', 'three-point percentage', 'effective shooting percentage' , 'True shooting percentage', 'PPG', 'RPG', 'Total rebound percentage', 'APG', 'Assist percentage', 'SPG' ,'BPG', 'TPG', 'Versatility Index', 'Offensive Rating' , 'Defensive rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
+
+
+# second dataset
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting percentage', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
+data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
+data_advanced
 ```
 
 ## Merge data?
 ```{r}
 # this is where we merge data
-master_data <- merge(data_advanced, new_bball_stats, by ='Player', no.dups = TRUE)
-subset(master_data, select= -c(,,3,4,27,28,29,30))
+master_data <- merge(new_bball_stats, data_advanced, by ='Player')
+#all_data <- subset(master_data, select= -c(4,29,31,32,45))
+all_data <- subset(master_data, select= c(1:3,5:28,30,33:44, 46:53))
 
-?merge
-
-str(bball)
-glimpse(bball)
+str(all_data)
+glimpse(all_data)
 ```
 
 ## filter data
@@ -70,7 +69,8 @@ wanted_predictors
 ## Correlation
 ```{r}
 # correlation to see  vs 
-my_cor <- bball_data_advanced %>% select(-c(Player, Position, Team)) %>% cor() %>% round(5) 
+my_cor <- bball_data_advanced %>% select(-c(Player, Position, Team)) %>% cor() %>% round(5)
+my_cor <- all_data %>% select(-c(Player, Position.x, Team.x)) %>% cor() %>% round(5)
 my_cor[(abs(my_cor) > 0.8)] 
 ```
 ## Plot
