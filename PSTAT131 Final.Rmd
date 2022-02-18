@@ -12,7 +12,6 @@ options(digits = 4)
 ```
 
 ## packages
-
 ```{r}
 #install.packages("tidyverse")
 library(tidyverse)
@@ -30,49 +29,45 @@ library(pander)
 # first dataset
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
-my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games Played', 'MPG', 'Minutes%', 'Usage Rate' , 'Turnover rate', 'free throws attempted', 'free throw percentage', '2-point field goals attempted', '2-point percentage', '3-point field goals attempted', 'three-point percentage', 'effective shooting percentage' , 'True shooting percentage', 'PPG', 'RPG', 'Total rebound percentage', 'APG', 'Assist percentage', 'SPG' ,'BPG', 'TPG', 'Versatility Index', 'Offensive Rating' , 'Defensive rating')
+my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games Played', 'MPG', 'Minutes%', 'Usage Rate' , 'Turnover rate', 'free throws attempted', 'Free throw percentage', '2-point field goals attempted', '2-point percentage', '3-point field goals attempted', 'three-point percentage', 'effective shooting percentage' , 'True shooting percentage', 'PPG', 'RPG', 'Total rebound percentage', 'APG', 'Assist percentage', 'SPG' ,'BPG', 'TPG', 'Versatility Index', 'Offensive Rating' , 'Defensive rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
-
+new_bball_stats
 
 # second dataset
 labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting percentage', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 data_advanced
 ```
+
 ## here is a comment
 ## Merge data?
 ```{r}
 # this is where we merge data
-master_data <- merge(new_bball_stats, data_advanced, by ='Player')
-#all_data <- subset(master_data, select= -c(4,29,31,32,45))
-all_data <- subset(master_data, select= c(1:3,5:28,30,33:44, 46:53))
+master_data <- merge(new_bball_stats, data_advanced, by.x ='Player', by.y = 'Player')
 
-str(all_data)
-glimpse(all_data)
+# cut down all predictors to only 24 predictors
+less_data <- subset(master_data, select= -c(2:4,7,9,10,12:14,20, 22,29,31,32,35:44, 45,49:51, 53))
+#all_data <- subset(master_data, select= c(1:3,5:28,30,33:44, 46:53))
+less_data
+glimpse(less_data)
 ```
 
 ## filter data
 ```{r}
-# this is where we filter data by certain statistics
-
-# filter players with usage rate over 30% and minutes played over 200 along with other of their main statistics
-points_per_game_only <- bball_data_advanced %>% filter(usage.rate > 30, Minutes.played > 200) %>% select(Player, Age, Minutes.played:true.shooting.percentage, usage.rate, win.shares:Value.Over.Replacement)
-points_per_game_only
-
-# filter by keeping only certain predictors
-# using the first data (bball_data_advanced)
-wanted_predictors <- bball_data_advanced %>% select(Player, Age, Minutes.played:true.shooting.percentage, usage.rate, win.shares:Value.Over.Replacement)
-wanted_predictors
+# filter players with total minutes played over 100 
+our_data <- less_data %>% filter(Minutes.played >= 100) %>% select(Player:Box.Plus.Minus)
+our_data
 ```
 
-## Correlation
+## Check to see Correlation
 ```{r}
-# correlation to see  vs 
+# correlation to see predictors vs other predictors in bball_data_advanced 
 my_cor <- bball_data_advanced %>% select(-c(Player, Position, Team)) %>% cor() %>% round(5)
-my_cor <- all_data %>% select(-c(Player, Position.x, Team.x)) %>% cor() %>% round(5)
+#my_cor <- all_data %>% select(-c(Player)) %>% cor() %>% round(5)
 my_cor[(abs(my_cor) > 0.8)] 
 ```
+
 ## Plot
 ```{r}
 plot()
@@ -81,7 +76,8 @@ plot()
 
 ## Linear regression?
 ```{r}
-fit <- lm(Minutes.played ~ ., data = bball_data_advanced)
+w <- our_data[-1]
+fit <- lm(Minutes.played ~ ., data = w)
 summary(fit)
 ```
 
