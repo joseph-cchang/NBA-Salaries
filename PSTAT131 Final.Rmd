@@ -40,7 +40,7 @@ labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Play
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 data_advanced
 ```
-
+## here is a comment
 ## Merge data?
 ```{r}
 # this is where we merge data
