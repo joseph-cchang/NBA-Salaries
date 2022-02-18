@@ -29,15 +29,18 @@ library(pander)
 # first dataset
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
-my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage Rate' , 'Turnover rate', 'free throws attempted', 'Free throw percentage', '2-point field goals attempted', '2-point percentage', '3-point field goals attempted', 'three-point percentage', 'effective shooting percentage' , 'True shooting percentage', 'PPG', 'RPG', 'Total rebound percentage', 'APG', 'Assist percentage', 'SPG' ,'BPG', 'TPG', 'Versatility Index', 'Offensive Rating' , 'Defensive rating')
+my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage Rate' , 'Turnover rate', 'free throws attempted', 'Free throw%', '2-point field goals attempted', '2-point%', '3-point field goals attempted', 'three-point %', 'effective shooting %' , 'True shooting %', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility Index', 'Offensive Rating' , 'Defensive rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
 new_bball_stats
 
 # second dataset
-labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting percentage', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting %', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 data_advanced
+
+
+
 ```
 
 ## here is a comment
@@ -64,7 +67,7 @@ conversion2
 ```{r}
 # filter players with games played over 10, then filter with total minutes played over 100 
 our_data1 <- conversion2 %>% filter(Games.Played >= 10) %>% select(Player:Box.Plus.Minus)
-our_data2 <- our_data1 %>% filter(Minutes.played > 100) %>% select(Player:Box.Plus.Minus)
+our_data2 <- our_data1 %>% filter(MPG > 10) %>% select(Player:Box.Plus.Minus)
 our_data2
 ```
 
@@ -101,12 +104,10 @@ summary(fit)
 # Set random seed
 set.seed(3112022)
 
-# Sample 70% observations as training data
-train = sample(1:nrow(seats), 648*0.7)
-seats.train = seats[train,]
-
-# The rest 50% as test data
-seats.test = seats[-train,]
+# Sample 80% observations as training data
+new_data <- data %>% resample_partition(p = c(test=0.2, train=0.8))
+training <- new_data$train
+testing <- new_data$test
 ```
 
 
