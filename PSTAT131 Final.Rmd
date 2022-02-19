@@ -14,12 +14,14 @@ options(digits = 4)
 ## packages
 ```{r}
 #install.packages("tidyverse")
+install.packages("corrplot")
 library(tidyverse)
 library(knitr)
 library(dplyr)
 library(tidyverse)
 library(modelr)
 library(pander)
+library(corrplot)
 ```
 
 ## read data
@@ -39,26 +41,29 @@ labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Play
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 data_advanced
 
-
-
+# salaries dataset
+labels2 <- c('Rank', 'Player', 'Salary', 'Use', 'Guaranteed')
+salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2, na = "XXX")
+salaries
 ```
 
 ## here is a comment
 ## Merge data?
 ```{r}
 # this is where we merge data
-combine <- merge(new_bball_stats, data_advanced, by = c('Player'))
-
+combine <- inner_join(new_bball_stats, data_advanced, by = 'Player') %>% 
+  inner_join(salaries, by = 'Player')
+  
 # cut down all predictors to only 24 predictors
-selection <- subset(combine, select= -c(2:4,7,9,10,12:14,20, 22,29:31,32,35:47,49:51, 53))
+selection <- subset(combine, select= -c(2:4,7,9,10,12:14,20,22,29:31,32,35:47,49:51,54, 56:57))
 #all_data <- subset(master_data, select= c(1:3,5:28,30,33:44, 46:53))
 less_data <- selection %>% relocate(c(PPG,RPG, APG,SPG,BPG,TPG, Minutes.played), .before = MPG)
 less_data
 
 # Convert predictors in less_data all to dbl, not chr
-conversion <- less_data[,2:21] %>% mutate_if(is.character,as.numeric)
-conversion1 <- conversion %>% add_column(master_data$Player) 
-names(conversion1)[names(conversion1) == "master_data$Player"] <- "Player"
+conversion <- less_data[,2:23] %>% mutate_if(is.character,as.numeric)
+conversion1 <- conversion %>% add_column(less_data$Player) 
+names(conversion1)[names(conversion1) == "less_data$Player"] <- "Player"
 conversion2 <- conversion1 %>% relocate((Player), .before = Games.Played)
 conversion2
 ```
@@ -66,29 +71,32 @@ conversion2
 ## filter data
 ```{r}
 # filter players with games played over 10, then filter with total minutes played over 100 
-our_data1 <- conversion2 %>% filter(Games.Played >= 10) %>% select(Player:Box.Plus.Minus)
-our_data2 <- our_data1 %>% filter(MPG > 10) %>% select(Player:Box.Plus.Minus)
+our_data1 <- conversion2 %>% filter(Games.Played >= 10) %>% select(Player:Salary)
+our_data2 <- our_data1 %>% filter(MPG > 10) %>% select(Player:Salary)
 our_data2
 ```
 
 ## Check to see Correlation
 ```{r}
 # correlation to see predictors vs other predictors in our_data2
-my_cor <- our_data2 %>% select(c(Games.Played: Box.Plus.Minus)) %>% cor() %>% round(3)
+my_cor <- our_data2 %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3)
+my_cor <- our_data2 %>% select(c(Games.Played: Salary)) %>% cor() %>% round(3)
 typeof(my_cor)
 as.data.frame(my_cor)
+corrplot(my_cor, method = "circle", type = "upper")
 ```
 
 ## Plot
 ```{r}
-plot()
+plot(our_data2$Salary)
+hist(our_data2$Salary)
 ```
 
 
 ## Linear regression?
 ```{r}
-w <- our_data[-1]
-fit <- lm(Minutes.played ~ ., data = w)
+w <- our_data2[-1]
+fit <- lm(Salary ~ ., data = w)
 summary(fit)
 ```
 
