@@ -48,7 +48,7 @@ data_advanced
 
 # salaries dataset
 labels2 <- c('Rank', 'Player', 'Salary', 'Use', 'Guaranteed')
-salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2, na = "XXX")
+salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 salaries
 ```
 
@@ -60,12 +60,12 @@ combine <- inner_join(new_bball_stats, data_advanced, by = 'Player') %>%
   inner_join(salaries, by = 'Player')
   
 # cut down all predictors to only 24 predictors
-selection <- subset(combine, select= -c(2:4,7,9,10,12:14,20,22,29:32,35:47,49:51,54,56:57))
-less_data <- selection %>% relocate(c(PPG,RPG,APG,SPG,BPG,TPG, Minutes.played), .before = MPG)
+selection <- subset(combine, select= -c(2:4,7,9,10,12:14,20,22,29:33,35:47,49:51,54,56:57))
+less_data <- selection %>% relocate(c(PPG,RPG,APG,SPG,BPG,TPG), .before = MPG)
 less_data
 
 # Convert predictors in less_data all to dbl, not chr
-conversion <- less_data[,2:23] %>% mutate_if(is.character,as.numeric)
+conversion <- less_data[,2:22] %>% mutate_if(is.character,as.numeric)
 conversion1 <- conversion %>% add_column(less_data$Player) 
 names(conversion1)[names(conversion1) == "less_data$Player"] <- "Player"
 conversion2 <- conversion1 %>% relocate((Player), .before = Games.Played)
@@ -74,16 +74,15 @@ conversion2
 
 ## filter data
 ```{r}
-# filter players with games played over 10, then filter with total minutes played over 100 
-our_data1 <- conversion2 %>% filter(Games.Played >= 10) %>% select(Player:Salary)
-our_data2 <- our_data1 %>% filter(MPG > 10) %>% select(Player:Salary)
-our_data2
+# filter players with games played over 10, then filter with total minutes played over 100
+our_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Player:Salary) %>% drop_na()
+our_data
 ```
 
 ## Check to see Correlation
 ```{r}
 # correlation to see predictors vs other predictors in our_data2
-my_cor <- our_data2 %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3)
+my_cor <- our_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3)
 corrplot(my_cor, method = "circle", type = "upper")
 ```
 ##Correlation2
@@ -99,8 +98,8 @@ Minutes.played>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.P
 
 ## Plot of response variable
 ```{r}
-plot(our_data2$Salary)
-hist(our_data2$Salary)
+plot(our_data$Salary)
+hist(our_data$Salary)
 ```
 
 
@@ -110,8 +109,8 @@ hist(our_data2$Salary)
 set.seed(3112022)
 
 # Sample 80% observations as training data
-fit_data <- our_data2[-1]
-new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8))
+fit_data <- our_data[-1]
+new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
 training <- as.data.frame(new_data$train)
 testing <- as.data.frame(new_data$test)
 ```
