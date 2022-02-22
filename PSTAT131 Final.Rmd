@@ -26,6 +26,7 @@ library(tidyverse)
 library(modelr)
 library(pander)
 library(corrplot)
+
 ```
 
 ## read data
@@ -103,12 +104,37 @@ hist(our_data2$Salary)
 ```
 
 
+## training and testing data
+```{r}
+# Set random seed
+set.seed(3112022)
+
+# Sample 80% observations as training data
+fit_data <- our_data2[-1]
+new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8))
+training <- as.data.frame(new_data$train)
+testing <- as.data.frame(new_data$test)
+```
+
 ## Linear regression
 ```{r}
 # linear regression for data
-fit_data <- our_data2[-1]
-fit <- lm(Salary ~ ., data = fit_data)
+
+# training data
+fit <- lm(Salary ~ ., data = training)
 summary(fit)
+
+# predicted salaries for training
+na.omit(training)
+train.predict <- predict(fit, training)
+
+# predicted salaries for testing
+test.predict <- predict(fit, testing)
+
+# MSE of train/test
+mean((train.predict-training$Salary)^2)
+mean((test.predict-testing$Salary)^2)
+
 
 # predictors that have high correlation with Salary (p-value less than 0.05)
 fit2 <- lm(Salary ~ Games.Played + PPG+RPG+APG+TPG+MPG, data= fit_data)
@@ -118,7 +144,7 @@ summary(fit2)
 
 ## Logistic regression?
 ```{r}
-
+glm()
 ```
 
 
@@ -127,17 +153,6 @@ summary(fit2)
 
 ```
 
-
-## training and testing data
-```{r}
-# Set random seed
-set.seed(3112022)
-
-# Sample 80% observations as training data
-new_data <- data %>% resample_partition(p = c(test=0.2, train=0.8))
-training <- new_data$train
-testing <- new_data$test
-```
 
 
 
