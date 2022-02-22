@@ -17,8 +17,8 @@ options(digits = 4)
 #install.packages("corrplot")
 #install.packages("ggplot2")       
 #install.packages("GGally")
-library("ggplot2")                     
-library("GGally")
+library(ggplot2)                     
+library(GGally)
 library(tidyverse)
 library(knitr)
 library(dplyr)
@@ -93,6 +93,8 @@ cor(salarycor)[,"Salary"]
 ```
 Correlation: PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus>
 Usage Rate>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
+
+We will use PPG, MPG, TPG,Value.Over.Replacement, APG, win.shares, Versatility Index, Box.Plus.Minus, Usage Rate
 
 
 
