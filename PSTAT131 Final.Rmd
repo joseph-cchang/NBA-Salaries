@@ -91,8 +91,8 @@ salarycor<- our_data %>% select(Salary, Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG
 ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
 ```
-Correlation: PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus>Usage Rate>
-Minutes.played>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
+Correlation: PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus>
+Usage Rate>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
 
 
 
@@ -140,21 +140,24 @@ fit2 <- lm(Salary ~ Games.Played + PPG+RPG+APG+TPG+MPG, data= fit_data)
 summary(fit2)
 ```
 
-
+## Training dataset 80%, testing 20%
 ## Logistic regression?
 ```{r}
 glm()
 ```
 
-
+## Training dataset 80%, testing 20%
 ## Lasso / Ridge ?
 ```{r}
 
 ```
 
 
+## Training dataset 80%, testing 20%
+## Decision tree
+```{r}
 
-
+```
 
 
 
