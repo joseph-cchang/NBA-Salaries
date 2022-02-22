@@ -87,7 +87,7 @@ corrplot(my_cor, method = "circle", type = "upper")
 ```
 ##Correlation2
 ```{r}
-salarycor<- our_data2 %>% select(Salary, Games.Played,PPG,RPG,APG,SPG,BPG,TPG,Minutes.played,MPG,`Usage Rate`,`Free throw%`,`three-point %`,`Versatility Index`,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
+salarycor<- our_data %>% select(Salary, Games.Played,PPG,RPG,APG,SPG,BPG,TPG,Minutes.played,MPG,`Usage Rate`,`Free throw%`,`three-point %`,`Versatility Index`,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
 ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
 ```
