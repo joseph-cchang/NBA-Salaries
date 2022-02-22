@@ -15,6 +15,10 @@ options(digits = 4)
 ```{r}
 #install.packages("tidyverse")
 #install.packages("corrplot")
+#install.packages("ggplot2")       
+#install.packages("GGally")
+library("ggplot2")                     
+library("GGally")
 library(tidyverse)
 library(knitr)
 library(dplyr)
@@ -81,6 +85,16 @@ our_data2
 my_cor <- our_data2 %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3)
 corrplot(my_cor, method = "circle", type = "upper")
 ```
+##Correlation2
+```{r}
+salarycor<- our_data2 %>% select(Salary, Games.Played,PPG,RPG,APG,SPG,BPG,TPG,Minutes.played,MPG,`Usage Rate`,`Free throw%`,`three-point %`,`Versatility Index`,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
+ggpairs(salarycor)
+cor(salarycor)[,"Salary"]
+```
+Correlation: PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus>Usage Rate>
+Minutes.played>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
+
+
 
 ## Plot of response variable
 ```{r}
