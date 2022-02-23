@@ -79,30 +79,30 @@ our_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Pla
 our_data
 ```
 
+## Plot of response variable
+```{r}
+plot(our_data$Salary, ylab= "Salary", ylim=c(0, 50000000))
+hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges")
+```
+
 ## Check to see Correlation
 ```{r}
 # correlation to see predictors vs other predictors in our_data2
 my_cor <- our_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3)
 corrplot(my_cor, method = "circle", type = "upper")
 ```
-##Correlation2
+
+## Correlation Check Part 2
 ```{r}
-salarycor<- our_data %>% select(Salary, Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,`Usage Rate`,`Free throw%`,`three-point %`,`Versatility Index`,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
-ggpairs(salarycor)
+salarycor <- our_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,`Usage Rate`,`Free throw%`,`three-point %`,`Versatility Index`,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
+#ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
 ```
-Correlation: PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus>
+
+Based from the correlation, we see that PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus>
 Usage Rate>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
 
-We will use PPG, MPG, TPG,Value.Over.Replacement, APG, win.shares, Versatility Index, Box.Plus.Minus, Usage Rate
-
-
-
-## Plot of response variable
-```{r}
-plot(our_data$Salary)
-hist(our_data$Salary)
-```
+We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value.Over.Replacement, APG, win.shares, Versatility Index, Box.Plus.Minus, Usage Rate.
 
 
 ## training and testing data
@@ -122,7 +122,7 @@ testing <- as.data.frame(new_data$test)
 # linear regression for data
 
 # training data
-fit <- lm(Salary ~ ., data = training)
+fit <- lm(Salary ~ PPG + MPG+TPG+Value.Over.Replacement+APG+win.shares+Versatility Index+ Box.Plus.Minus+Usage Rate, data = training)
 summary(fit)
 
 # predicted salaries for training
