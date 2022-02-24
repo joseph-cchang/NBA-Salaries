@@ -36,13 +36,13 @@ library(corrplot)
 # first dataset
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
-my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage Rate' , 'Turnover rate', 'free throws attempted', 'Free throw%', '2-point field goals attempted', '2-point%', '3-point field goals attempted', 'three-point %', 'effective shooting %' , 'True shooting %', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility Index', 'Offensive Rating' , 'Defensive rating')
+my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover rate', 'free throws attempted', 'Free throw%', '2-point field goals attempted', '2-point%', '3-point field goals attempted', 'three-point %', 'effective shooting %' , 'True shooting %', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive Rating' , 'Defensive rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
 new_bball_stats
 
 # second dataset
-labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting %', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting %', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage_rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 data_advanced
 
@@ -52,7 +52,6 @@ salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 salaries
 ```
 
-## here is a comment
 ## Merge data?
 ```{r}
 # this is where we merge data
@@ -111,7 +110,7 @@ We will filter those correlations above 0.5, meaning we will only use PPG, MPG, 
 set.seed(3112022)
 
 # Sample 80% observations as training data
-fit_data <- our_data[-1]
+fit_data <- our_data[-1] 
 new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
 training <- as.data.frame(new_data$train)
 testing <- as.data.frame(new_data$test)
@@ -122,7 +121,7 @@ testing <- as.data.frame(new_data$test)
 # linear regression for data
 
 # training data
-fit <- lm(Salary ~ PPG + MPG+TPG+Value.Over.Replacement+APG+win.shares+Versatility Index+ Box.Plus.Minus+Usage Rate, data = training)
+fit <- lm(Salary ~ PPG + MPG+TPG+Value.Over.Replacement+APG+win.shares+ Versatility_Index+ Box.Plus.Minus + Usage_Rate, data = training)
 summary(fit)
 
 # predicted salaries for training
@@ -135,6 +134,9 @@ test.predict <- predict(fit, testing)
 # MSE of train/test
 mean((train.predict-training$Salary)^2)
 mean((test.predict-testing$Salary)^2)
+
+
+
 
 
 # predictors that have high correlation with Salary (p-value less than 0.05)
