@@ -136,12 +136,12 @@ mean((train.predict-training$Salary)^2)
 mean((test.predict-testing$Salary)^2)
 
 
-
-
-
 # predictors that have high correlation with Salary (p-value less than 0.05)
-fit2 <- lm(Salary ~ Games.Played + PPG+RPG+APG+TPG+MPG, data= fit_data)
+fit2 <- lm(Salary ~ PPG + Usage_Rate + APG, data= fit_data)
 summary(fit2)
+
+fit3 <- lm(Salary ~ PPG, data= fit_data)
+summary(fit3)
 ```
 
 ## Training dataset 80%, testing 20%
@@ -150,10 +150,56 @@ summary(fit2)
 glm()
 ```
 
-## Training dataset 80%, testing 20%
-## Lasso / Ridge ?
 ```{r}
+# Sample 80% observations as training data
+fit_data <- our_data[-1] 
+new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
+training <- as.data.frame(new_data$train)
+testing <- as.data.frame(new_data$test)
 
+set.seed(2252022)
+dat <- model.matrix(Salary~., fit_data) 
+train = sample(nrow(dat))
+x.train = dat[train, ]
+y.train = fit_data[train, ]$Salary
+
+# The rest as test data
+x.test = dat[-train, ]
+y.test = fit_data[-train, ]$Salary
+```
+
+
+## Lasso / Ridge 
+
+```{r}
+# ridge
+lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
+ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
+ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients")
+ridge.pred
+
+# lasso
+lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
+lasso.mod <- cv.glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds = 10)
+lasso.pred = predict(lasso.mod, s = lasso.mod$lambda.min, type="coefficients")
+lasso.pred
+
+```
+
+```{r}
+# ridge MSE
+training_pred <- predict(ridge.mod, s = ridge.mod$lambda.min, newx = x.train)
+mean((training_pred - y.train)^2)
+
+testing_pred <- predict(ridge.mod, s = ridge.mod$lambda.min, newx = x.test)
+mean((testing_pred - y.test)^2)
+
+# lasso MSE
+training_predict <- predict(lasso.mod, s = lasso.mod$lambda.min, newx = x.train)
+mean((training_predict - y.train)^2)
+
+testing_predict <- predict(lasso.mod, s = lasso.mod$lambda.min, newx = x.test)
+mean((testing_predict - y.test)^2)
 ```
 
 
