@@ -2,7 +2,9 @@
 title: "PSTAT131 Final Project"
 author: "Joseph Chang, Tom Wei, Akul Bajaj"
 date: "3/11/2022"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE, echo = FALSE}
@@ -12,6 +14,7 @@ options(digits = 4)
 ```
 
 ## packages
+
 ```{r}
 #install.packages("tidyverse")
 #install.packages("corrplot")
@@ -20,21 +23,24 @@ options(digits = 4)
 library(ggplot2)                     
 library(GGally)
 library(tidyverse)
+library(glmnet)
 library(knitr)
 library(dplyr)
 library(tidyverse)
 library(modelr)
 library(pander)
 library(corrplot)
-
+library(readxl)
 ```
 
 ## read data
+
 ```{r}
 # this is where we will input the data 
 
 # first dataset
-X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics
+X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx")
+
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
 my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover rate', 'free throws attempted', 'Free throw%', '2-point field goals attempted', '2-point%', '3-point field goals attempted', 'three-point %', 'effective shooting %' , 'True shooting %', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive Rating' , 'Defensive rating')
 colnames(bball_stats) <- my_colnames
@@ -53,6 +59,9 @@ salaries
 ```
 
 ## Merge data?
+
+In this section, we'll merge the two
+
 ```{r}
 # this is where we merge data
 combine <- inner_join(new_bball_stats, data_advanced, by = 'Player') %>% 
@@ -72,6 +81,7 @@ conversion2
 ```
 
 ## filter data
+
 ```{r}
 # filter players with games played over 10, then filter with total minutes played over 100
 our_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Player:Salary) %>% drop_na()
@@ -79,12 +89,14 @@ our_data
 ```
 
 ## Plot of response variable
+
 ```{r}
 plot(our_data$Salary, ylab= "Salary", ylim=c(0, 50000000))
 hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges")
 ```
 
 ## Check to see Correlation
+
 ```{r}
 # correlation to see predictors vs other predictors in our_data2
 my_cor <- our_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3)
@@ -92,19 +104,19 @@ corrplot(my_cor, method = "circle", type = "upper")
 ```
 
 ## Correlation Check Part 2
+
 ```{r}
-salarycor <- our_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,`Usage Rate`,`Free throw%`,`three-point %`,`Versatility Index`,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
+salarycor <- our_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,Usage_Rate,`Free throw%`,`three-point %`,Versatility_Index,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
 #ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
 ```
 
-Based from the correlation, we see that PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus>
-Usage Rate>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
+Based from the correlation, we see that PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus> Usage Rate>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
 
 We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value.Over.Replacement, APG, win.shares, Versatility Index, Box.Plus.Minus, Usage Rate.
 
-
 ## training and testing data
+
 ```{r}
 # Set random seed
 set.seed(3112022)
@@ -117,6 +129,7 @@ testing <- as.data.frame(new_data$test)
 ```
 
 ## Linear regression
+
 ```{r}
 # linear regression for data
 
@@ -145,9 +158,11 @@ summary(fit3)
 ```
 
 ## Training dataset 80%, testing 20%
+
 ## Logistic regression?
+
 ```{r}
-glm()
+# glm()
 ```
 
 ```{r}
@@ -168,8 +183,7 @@ x.test = dat[-train, ]
 y.test = fit_data[-train, ]$Salary
 ```
 
-
-## Lasso / Ridge 
+## Lasso / Ridge
 
 ```{r}
 # ridge
@@ -202,15 +216,10 @@ testing_predict <- predict(lasso.mod, s = lasso.mod$lambda.min, newx = x.test)
 mean((testing_predict - y.test)^2)
 ```
 
-
 ## Training dataset 80%, testing 20%
+
 ## Decision tree
+
 ```{r}
 
 ```
-
-
-
-
-
-
