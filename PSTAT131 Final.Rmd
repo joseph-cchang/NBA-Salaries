@@ -100,8 +100,8 @@ hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary
 
 ```{r}
 # correlation to see predictors vs other predictors in our_data2
-my_cor <- our_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3)
-corrplot(my_cor, method = "circle", type = "upper")
+my_cor <- our_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
+corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
 ```
 
 ## Correlation Check Part 2
@@ -158,7 +158,6 @@ fit3 <- lm(Salary ~ PPG, data= fit_data)
 summary(fit3)
 
 
-# use on training, use test to predict
 ```
 
 ## Training dataset 80%, testing 20%
@@ -171,55 +170,81 @@ hard to do logistic
 # glm()
 ```
 
+
+
+
+
+## Training dataset 80%, testing 20%
 ```{r}
+# Set random seed
+set.seed(3112022)
+
 # Sample 80% observations as training data
 fit_data <- our_data[-1] 
 new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
 training <- as.data.frame(new_data$train)
 testing <- as.data.frame(new_data$test)
 
-set.seed(2252022)
-
 x <- model.matrix(Salary~., fit_data)
 y <- fit_data$Salary
 
+x.train <- as.matrix(training[,-21])
+y.train <- as.matrix(training$Salary)
+x.test <- as.matrix(testing[,-21])
+y.test <- as.matrix(testing$Salary)
 ```
 
-## Lasso / Ridge
+## Ridge / Lasso
 
 ```{r}
 # ridge
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
 
-ridge.mod = cv.glmnet(x,y, alpha=0,lambda=lambda.list.ridge, nfolds=5)
+ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
+
+ridge.pred_1=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", newx=x.test)
+
+ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
+mean((ridge.pred-y.test)^2)
 
 
-ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients")
+# cross-validation to choose best tuning parameter
+set.seed(3142022)
+cv.out.ridge = cv.glmnet(x.train, y.train, alpha= 0)
+plot(cv.out.ridge)
+abline(v=log(cv.out.ridge$lambda.min), col = "blue", lwd=3, lty=2)
 
-ridge.pred
+bestlam = cv.out.ridge$lambda.min
+bestlam
 
-# lasso
-lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
-lasso.mod <- cv.glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds = 10)
-lasso.pred = predict(lasso.mod, s = lasso.mod$lambda.min, type="coefficients")
-lasso.pred
+ridge.pred=predict(ridge.mod, s = bestlam, newx=x.test)
+mean((ridge.pred-y.test)^2)
 
+out = glmnet(x,y,alpha=0)
+predict(out, type="coefficients", s=bestlam)
 ```
 
 ```{r}
-# ridge MSE
-training_pred <- predict(ridge.mod, s = ridge.mod$lambda.min, newx = x.train)
-mean((training_pred - y.train)^2)
+# lasso
+set.seed(3142022)
+lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
 
-testing_pred <- predict(ridge.mod, s = ridge.mod$lambda.min, newx = x.test)
-mean((testing_pred - y.test)^2)
+lasso.mod <- glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds = 5)
 
-# lasso MSE
-training_predict <- predict(lasso.mod, s = lasso.mod$lambda.min, newx = x.train)
-mean((training_predict - y.train)^2)
+plot(lasso.mod, xvar="lambda", label=TRUE)
 
-testing_predict <- predict(lasso.mod, s = lasso.mod$lambda.min, newx = x.test)
-mean((testing_predict - y.test)^2)
+cv.out.lasso = cv.glmnet(x.train,y.train,alpha=1)
+plot(cv.out.lasso)
+abline(v=log(cv.out.lasso$lambda.min), col="red", lwd=3, lty=2)
+
+bestlam2 = cv.out.lasso$lambda.min
+lasso.pred = predict(lasso.mod, s = bestlam2, newx = x.test)
+mean((lasso.pred-y.test)^2)
+
+out = glmnet(x, y, alpha=1, lambda=lambda.list.lasso)
+lasso.coef = predict(out, type="coefficients", s=bestlam)
+lasso.coef
+
 ```
 
 ## Training dataset 80%, testing 20%
