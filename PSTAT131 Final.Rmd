@@ -179,14 +179,10 @@ training <- as.data.frame(new_data$train)
 testing <- as.data.frame(new_data$test)
 
 set.seed(2252022)
-dat <- model.matrix(Salary~., fit_data) 
-train = sample(nrow(dat))
-x.train = dat[train, ]
-y.train = fit_data[train, ]$Salary
 
-# The rest as test data
-x.test = dat[-train, ]
-y.test = fit_data[-train, ]$Salary
+x <- model.matrix(Salary~., fit_data)
+y <- fit_data$Salary
+
 ```
 
 ## Lasso / Ridge
@@ -194,8 +190,12 @@ y.test = fit_data[-train, ]$Salary
 ```{r}
 # ridge
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
-ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
+
+ridge.mod = cv.glmnet(x,y, alpha=0,lambda=lambda.list.ridge, nfolds=5)
+
+
 ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients")
+
 ridge.pred
 
 # lasso
