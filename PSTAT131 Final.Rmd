@@ -3,8 +3,8 @@ title: "PSTAT131 Final Project"
 author: "Joseph Chang, Tom Wei, Akul Bajaj"
 date: "3/11/2022"
 output:
-  html_document:
-    df_print: paged
+html_document:
+df_print: paged
 ---
 
 ```{r setup, include=FALSE, echo = FALSE}
@@ -12,6 +12,7 @@ output:
 knitr::opts_chunk$set(fig.width=7, fig.height=5, echo =TRUE)
 options(digits = 4)
 ```
+
 
 ## packages
 
