@@ -43,13 +43,13 @@ library(readxl)
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx")
 
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
-my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover rate', 'free throws attempted', 'Free throw%', '2-point field goals attempted', '2-point%', '3-point field goals attempted', 'three-point %', 'effective shooting %' , 'True shooting %', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive Rating' , 'Defensive rating')
+my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point field goals attempted', '2-point%', '3-point_field_goals attempted', 'three_point_percent', 'effective_shooting %' , 'True_shooting %', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
 new_bball_stats
 
 # second dataset
-labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes played', 'Player Efficiency Rating', 'true shooting %', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage_rate', 'offensive win shares', 'defensive win shares', 'win shares','win shares per 48 minutes', 'Offensive Box Plus/Minus', 'Defensive Box Plus/Minus','Box Plus/Minus','Value Over Replacement')
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes_played', 'Player_Efficiency_Rating', 'true_shooting_%', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage_rate', 'offensive_win_shares', 'defensive_win_shares', 'win_shares','win shares per 48 minutes', 'Offensive_Box Plus/Minus', 'Defensive_Box Plus/Minus','Box_Plus_Minus','Value_Over_Replacement')
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 data_advanced
 
@@ -59,9 +59,7 @@ salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 salaries
 ```
 
-## Merge data?
-
-In this section, we'll merge the two
+## Merge data
 
 ```{r}
 # this is where we merge data
@@ -107,7 +105,8 @@ corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
 ## Correlation Check Part 2
 
 ```{r}
-salarycor <- our_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,Usage_Rate,`Free throw%`,`three-point %`,Versatility_Index,`Offensive Rating`,`Defensive rating`,win.shares,Box.Plus.Minus,Value.Over.Replacement) %>% drop_na()
+salarycor <- our_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,Usage_Rate, Free_throw_percent, three_point_percent,Versatility_Index, Offensive_Rating, Defensive_Rating, win_shares, Box_Plus_Minus, Value_Over_Replacement) %>% drop_na()
+
 #ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
 ```
@@ -135,7 +134,7 @@ testing <- as.data.frame(new_data$test)
 # linear regression for data
 
 # training data
-fit <- lm(Salary ~ PPG + MPG+TPG+Value.Over.Replacement+APG+win.shares+ Versatility_Index+ Box.Plus.Minus + Usage_Rate, data = training)
+fit <- lm(Salary ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ Box_Plus_Minus + Usage_Rate, data = training)
 summary(fit)
 
 # predicted salaries for training
