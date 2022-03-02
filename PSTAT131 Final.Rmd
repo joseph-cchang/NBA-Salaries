@@ -168,8 +168,8 @@ Create a new variable, salarygreater: whether a player's salary is greater than 
 mean_train_salary <- mean(training$Salary)
 training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0),
                                                                      levels=c(0, 1)))
-training_logit <- glm(salarygreater ~ PPG + MPG+TPG+Value.Over.Replacement+APG+win.shares+ Versatility_Index+ 
-                        Box.Plus.Minus + Usage_Rate, data = training_salarymean, family = 'binomial')
+training_logit <- glm(salarygreater ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ 
+                        Box_Plus_Minus + Usage_Rate, data = training_salarymean, family = 'binomial')
 
 #prediction
 salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
