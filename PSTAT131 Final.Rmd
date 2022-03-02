@@ -31,6 +31,11 @@ library(modelr)
 library(pander)
 library(corrplot)
 library(readxl)
+library(ISLR)
+library(tidymodels)
+library(ggthemes)
+library(naniar)
+library(ROCR)
 ```
 
 ## read data
