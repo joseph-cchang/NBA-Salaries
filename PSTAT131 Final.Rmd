@@ -181,6 +181,9 @@ salarymean_pred_training <- predict(training_logit, training_salarymean, type="r
 train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
 
 #testing error
+calc_error_rate <- function(predicted.value, true.value){
+  return(mean(true.value!=predicted.value))
+}
 calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
 
 #and do the same with the testing error:
