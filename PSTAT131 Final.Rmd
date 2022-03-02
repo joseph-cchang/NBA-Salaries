@@ -169,8 +169,56 @@ hard to do logistic
 # glm()
 ```
 
+a new variable, salarygreater: whether a player's salary is greater than mean 
+
+```{r}
+mean_train_salary <- mean(training$Salary)
+training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0),
+                                                                     levels=c(0, 1)))
+training_logit <- glm(salarygreater ~ PPG + MPG+TPG+Value.Over.Replacement+APG+win.shares+ Versatility_Index+ 
+                        Box.Plus.Minus + Usage_Rate, data = training_salarymean, family = 'binomial')
+```
+
+Prediction
+```{r}
+salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
+train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
+```
 
 
+testing error
+```{r}
+calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
+```
+
+
+And do the same with the testing error:
+```{r}
+testing_salarymean<- testing %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0),
+                                                               levels=c(0, 1)))
+salarymean_pred_testing <- predict(training_logit,  testing_salarymean, type="response")
+test_maj_rule2 <- ifelse(salarymean_pred_testing > 0.5, 1,0)
+calc_error_rate(test_maj_rule2, testing_salarymean$salarygreater)
+```
+
+
+Now we can plot an ROC curve for the test data:
+```{r}
+pred <- prediction(salarymean_pred_testing, testing_salarymean$salarygreater)
+
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+
+plot(perf, col = 2, lwd = 3, main = "ROC curve")
+
+abline(0, 1)
+```
+
+And calculate the area under the curve (AUC):
+```{r}
+auc <- performance(pred, "auc")@y.values[[1]]
+auc
+
+```
 
 
 ## Training dataset 80%, testing 20%
