@@ -163,11 +163,40 @@ summary(fit3)
 ## regularized regression
 
 ## Logistic regression?
-
-hard to do logistic
-
+Create a new variable, salarygreater: whether a player's salary is greater than mean 
 ```{r}
-# glm()
+mean_train_salary <- mean(training$Salary)
+training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0),
+                                                                     levels=c(0, 1)))
+training_logit <- glm(salarygreater ~ PPG + MPG+TPG+Value.Over.Replacement+APG+win.shares+ Versatility_Index+ 
+                        Box.Plus.Minus + Usage_Rate, data = training_salarymean, family = 'binomial')
+
+#prediction
+salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
+train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
+
+#testing error
+calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
+
+#and do the same with the testing error:
+testing_salarymean<- testing %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0),
+                                                               levels=c(0, 1)))
+salarymean_pred_testing <- predict(training_logit,  testing_salarymean, type="response")
+test_maj_rule2 <- ifelse(salarymean_pred_testing > 0.5, 1,0)
+calc_error_rate(test_maj_rule2, testing_salarymean$salarygreater)
+
+#Now we can plot an ROC curve for the test data:
+pred <- prediction(salarymean_pred_testing, testing_salarymean$salarygreater)
+
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+
+plot(perf, col = 2, lwd = 3, main = "ROC curve")
+
+abline(0, 1)
+
+#And calculate the area under the curve (AUC):
+auc <- performance(pred, "auc")@y.values[[1]]
+auc
 ```
 
 ## Training dataset 80%, testing 20%
@@ -246,11 +275,95 @@ lasso.coef
 
 ## Training dataset 80%, testing 20%
 
-## Decision tree
-
+Code for Categorical Decison Tree:
 ```{r}
-
+# Set random seed
+set.seed(3112022)
+ 
+# Sample 80% observations as training data
+fit_data <- our_data[-1] 
+new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
+training <- as.data.frame(new_data$train)
+testing <- as.data.frame(new_data$test)
+high.test = our_data$High
 ```
+ 
+```{r}
+# Create data frame with the oringinal eleven variables and High
+our_data = our_data %>%
+mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
+```
+ 
+```{r}
+glimpse(our_data)
+tree_our_data=tree(High~.-Salary,data = our_data) 
+```
+ 
+```{r}
+summary(tree_our_data)
+```
+ 
+```{r}
+plot(tree_our_data)
+text(tree_our_data, pretty = 0, cex = .4, col = "red")
+title("decision tree on Our data", cex = 0.8)
+```
+ 
+```{r}
+draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
+```
+ 
+```{r}
+# Set random seed for results being reproducible
+set.seed(3)
+# Get dimension of dataset
+dim(our_data)
+```
+ 
+```{r}
+ 
+# Fit model on training set
+tree.nba = tree(High~.-Salary, data = training)
+ 
+# Plot the tree
+draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
+title("Classification Tree Built on Training Set")
+ 
+```
+```{r}
+# Predict on test set
+tree.pred = predict(tree.nba, test, type="class")
+tree.pred
+```
+```{r}
+# Obtain confusion matrix
+error = table(tree.nba, high.test)
+error
+```
+```{r}
+# Test accuracy rate
+sum(diag(error))/sum(error)
+```
+ 
+```{r}
+# Test error rate (Classification Error)
+1-sum(diag(error))/sum(error)
+```
+ 
+```{r}
+#same thing as above
+mean(tree.pred != High.test)
+```
+ 
+```{r}
+# Set random seed
+set.seed(3)
+# K=10-Fold cross validation
+cv = cv.tree(tree.nba, FUN=prune.misclass, K=10)
+# Print out cv
+cv$size
+```
+
 
 ## random forest
 
