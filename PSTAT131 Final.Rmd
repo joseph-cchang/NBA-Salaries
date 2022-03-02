@@ -40,16 +40,16 @@ library(maptree)
 library(tree)
 ```
 
-## read data
+## import data
 
 ```{r}
-# this is where we will input the data 
+# this is where we will import the data 
 
 # first dataset
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx")
 
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
-my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point field goals attempted', '2-point%', '3-point_field_goals attempted', 'three_point_percent', 'effective_shooting %' , 'True_shooting %', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
+my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point_field goals_attempted', '2-point%', '3-point_field_goals_attempted', 'three_point_percent', 'effective_shooting_%' , 'True_shooting_%', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
 new_bball_stats
@@ -89,29 +89,29 @@ conversion2
 
 ```{r}
 # filter players with games played over 10, then filter with total minutes played over 100
-our_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Player:Salary) %>% drop_na()
-our_data
+reduced_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Player:Salary) %>% drop_na()
+reduced_data
 ```
 
 ## Plot of response variable
 
 ```{r}
-plot(our_data$Salary, ylab= "Salary", ylim=c(0, 50000000))
-hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges")
+plot(reduced_data$Salary, ylab= "Salary", ylim=c(0, 50000000))
+hist(reduced_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges")
 ```
 
 ## Check to see Correlation
 
 ```{r}
 # correlation to see predictors vs other predictors in our_data2
-my_cor <- our_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
+my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
 corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
 ```
 
 ## Correlation Check Part 2
 
 ```{r}
-salarycor <- our_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,Usage_Rate, Free_throw_percent, three_point_percent,Versatility_Index, Offensive_Rating, Defensive_Rating, win_shares, Box_Plus_Minus, Value_Over_Replacement) %>% drop_na()
+salarycor <- reduced_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,Usage_Rate, Free_throw_percent, three_point_percent,Versatility_Index, Offensive_Rating, Defensive_Rating, win_shares, Box_Plus_Minus, Value_Over_Replacement) %>% drop_na()
 
 #ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
@@ -119,7 +119,13 @@ cor(salarycor)[,"Salary"]
 
 Based from the correlation, we see that PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus> Usage Rate>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
 
-We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value.Over.Replacement, APG, win.shares, Versatility Index, Box.Plus.Minus, Usage Rate.
+We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value_Over_Replacement, APG, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate.
+
+```{r}
+our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, Value_Over_Replacement, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate)
+```
+
+
 
 ## training and testing data
 
@@ -224,9 +230,9 @@ testing <- as.data.frame(new_data$test)
 x <- model.matrix(Salary~., fit_data)
 y <- fit_data$Salary
 
-x.train <- as.matrix(training[,-21])
+x.train <- as.matrix(training[,-1])
 y.train <- as.matrix(training$Salary)
-x.test <- as.matrix(testing[,-21])
+x.test <- as.matrix(testing[,-1])
 y.test <- as.matrix(testing$Salary)
 ```
 
@@ -285,7 +291,6 @@ lasso.coef
 
 ## Training dataset 80%, testing 20%
 
-Code for Categorical Decison Tree:
 ```{r}
 # Set random seed
 set.seed(3112022)
@@ -298,18 +303,16 @@ testing <- as.data.frame(new_data$test)
 high.test = our_data$High
 ```
  
+## Code for Categorical Decision Tree:
+
 ```{r}
-# Create data frame with the oringinal eleven variables and High
-our_data = our_data %>%
+# Create data frame with the original eleven variables and High
+our_data <- our_data %>%
 mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
-```
- 
-```{r}
+
 glimpse(our_data)
-tree_our_data=tree(High~.-Salary,data = our_data) 
-```
- 
-```{r}
+tree_our_data=tree(High~.-c(Player,Salary),data = our_data) 
+
 summary(tree_our_data)
 ```
  
@@ -317,9 +320,7 @@ summary(tree_our_data)
 plot(tree_our_data)
 text(tree_our_data, pretty = 0, cex = .4, col = "red")
 title("decision tree on Our data", cex = 0.8)
-```
- 
-```{r}
+
 draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
 ```
  
@@ -331,7 +332,6 @@ dim(our_data)
 ```
  
 ```{r}
- 
 # Fit model on training set
 tree.nba = tree(High~.-Salary, data = training)
  
