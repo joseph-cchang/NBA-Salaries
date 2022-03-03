@@ -340,6 +340,7 @@ draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
 title("Classification Tree Built on Training Set")
  
 ```
+
 ```{r}
 # Predict on test set
 tree.pred = predict(tree.nba, test, type="class")
@@ -374,6 +375,56 @@ cv = cv.tree(tree.nba, FUN=prune.misclass, K=10)
 cv$size
 ```
 
+```{r}
+cv$dev
+```
+
+```{r}
+# Best size
+# we prefer the tree with smaller size
+best.cv = min(cv$size[cv$dev == min(cv$dev)])
+best.cv
+```
+
+```{r}
+# Plot size vs. cross-validation error rate
+plot(cv$size , cv$dev, type="b",
+xlab = "Number of leaves, \'best\'", ylab = "CV Misclassification Error",
+col = "red", main="CV")
+abline(v=best.cv, lty=2)
+# Add lines to identify complexity parameter
+min.error = which.min(cv$dev) # Get minimum error index
+abline(h = cv$dev[min.error],lty = 2)
+```
+
+```{r}
+# Prune tree.carseats
+pt.cv = prune.misclass (tree.carseats, best=best.cv)
+# Plot pruned tree
+plot(pt.cv)
+text(pt.cv, pretty=0, col = "blue", cex = .5)
+title("Pruned tree of size 16")
+```
+
+*Now we are going to focus on calculating the respective test error rate for the model
+
+```{r}
+# Predict on test set
+pred.pt.cv = predict(pt.cv, testing, type="class")
+# Obtain confusion matrix
+err.pt.cv = table(pred.pt.cv, High.test)
+err.pt.cv
+```
+
+```{r}
+# Test accuracy rate
+sum(diag(err.pt.cv))/sum(err.pt.cv)
+```
+
+```{r}
+# Test error rate (Classification Error)
+1-sum(diag(err.pt.cv))/sum(err.pt.cv)
+```
 
 ## random forest
 
