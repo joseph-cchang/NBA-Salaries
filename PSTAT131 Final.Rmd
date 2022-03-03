@@ -311,7 +311,7 @@ our_data <- our_data %>%
 mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
 
 glimpse(our_data)
-tree_our_data=tree(High~.-c(Player,Salary),data = our_data) 
+tree_our_data=tree(Salary~.-Player -High,data = our_data) 
 
 summary(tree_our_data)
 ```
