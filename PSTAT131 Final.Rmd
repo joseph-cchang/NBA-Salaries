@@ -333,7 +333,7 @@ dim(our_data)
  
 ```{r}
 # Fit model on training set
-tree.nba = tree(High~.-Salary, data = training)
+tree.nba = tree(Salary~., data = training)
  
 # Plot the tree
 draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
@@ -341,36 +341,27 @@ title("Classification Tree Built on Training Set")
  
 ```
 
+
 ```{r}
 # Predict on test set
-tree.pred = predict(tree.nba, test, type="class")
+tree.pred = predict(tree.nba, testing, type="vector")
 tree.pred
+#mean squared error
+y=mean((tree.pred-testing$Salary)^2)
+
+#root mean squared error
+z=sqrt(y)
+z
 ```
-```{r}
-# Obtain confusion matrix
-error = table(tree.nba, high.test)
-error
-```
-```{r}
-# Test accuracy rate
-sum(diag(error))/sum(error)
-```
+
+
  
-```{r}
-# Test error rate (Classification Error)
-1-sum(diag(error))/sum(error)
-```
- 
-```{r}
-#same thing as above
-mean(tree.pred != High.test)
-```
  
 ```{r}
 # Set random seed
 set.seed(3)
 # K=10-Fold cross validation
-cv = cv.tree(tree.nba, FUN=prune.misclass, K=10)
+cv = cv.tree(tree.nba, K=10)
 # Print out cv
 cv$size
 ```
@@ -399,32 +390,33 @@ abline(h = cv$dev[min.error],lty = 2)
 
 ```{r}
 # Prune tree.carseats
-pt.cv = prune.misclass (tree.carseats, best=best.cv)
+pt.cv = prune.tree (tree.nba, best=best.cv)
 # Plot pruned tree
 plot(pt.cv)
 text(pt.cv, pretty=0, col = "blue", cex = .5)
-title("Pruned tree of size 16")
+title("Pruned tree of size 7")
 ```
 
 *Now we are going to focus on calculating the respective test error rate for the model
 
 ```{r}
+
+
+
 # Predict on test set
-pred.pt.cv = predict(pt.cv, testing, type="class")
-# Obtain confusion matrix
-err.pt.cv = table(pred.pt.cv, High.test)
-err.pt.cv
+pred.pt.cv = predict(pt.cv, testing, type="vector")
+
+#mean squared error
+x=mean((pred.pt.cv-testing$Salary)^2)
+x
+#root mean squared error
+m=sqrt(x)
+m
+
+
 ```
 
-```{r}
-# Test accuracy rate
-sum(diag(err.pt.cv))/sum(err.pt.cv)
-```
-
-```{r}
-# Test error rate (Classification Error)
-1-sum(diag(err.pt.cv))/sum(err.pt.cv)
-```
+The mse is lower with 7 nodes( 8047525). So best.
 
 ## random forest
 
