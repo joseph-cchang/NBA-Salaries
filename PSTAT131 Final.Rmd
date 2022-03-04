@@ -50,7 +50,7 @@ library(cluster)
 # this is where we will import the data 
 
 # first dataset
-X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats Player Box Score  Advanced Metrics.xlsx")
+X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats Player Box Score Advanced Metrics.xlsx")
 
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
 my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point_field goals_attempted', '2-point%', '3-point_field_goals_attempted', 'three_point_percent', 'effective_shooting_%' , 'True_shooting_%', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
@@ -298,19 +298,6 @@ lasso.coef = predict(out, type="coefficients", s=bestlam)
 lasso.coef
 
 ```
-
-## Training dataset 80%, testing 20%
-
-```{r}
-# Set random seed
-set.seed(3112022)
- 
-# Sample 80% observations as training data
-fit_data <- our_data[-1] 
-new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
-training <- as.data.frame(new_data$train)
-testing <- as.data.frame(new_data$test)
-```
  
 ## Categorical Decision Tree:
 
@@ -444,7 +431,7 @@ pr.out$rotation
 decomp$d^2/sum(decomp$d^2)
 
 pve
-
+# we will consider the first two PCAs because they are the largest 2 values. 
 ```
 
 ## Cluster
