@@ -400,3 +400,48 @@ The mse is lower with 7 nodes( 8047525). So best.
 
 ## random forest
 
+
+## PCA 
+```{r}
+dat <- our_data %>% select(-1,-12)
+summary(dat)
+
+# check variance of each variable in our_data
+apply(dat, 2, var)
+
+# Principle component Analysis
+pr.out = prcomp(dat, scale = TRUE)
+# center is the mean and scale is the standard deviation
+pr.out$center
+pr.out$scale
+pr.out$rotation
+
+  
+# plot 
+biplot(pr.out, scale = 0)
+
+# number of prinicipal components needed
+pr.out$sdev
+pr.var = pr.out$sdev^2
+pr.var
+pve = pr.var/sum(pr.var)
+pve
+
+# plot 
+plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
+plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
+
+# compute PCA
+our = scale(dat, center=TRUE, scale=TRUE)
+decomp = svd(our)
+names(decomp)
+
+decomp$v
+
+pr.out$rotation
+
+decomp$d^2/sum(decomp$d^2)
+pve
+```
+
+
