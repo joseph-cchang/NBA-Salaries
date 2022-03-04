@@ -20,6 +20,8 @@ options(digits = 4)
 #install.packages("corrplot")
 #install.packages("ggplot2")       
 #install.packages("GGally")
+#install.packages("factoextra")
+#install.packages("cluster")
 library(ggplot2)                     
 library(GGally)
 library(tidyverse)
@@ -38,6 +40,8 @@ library(naniar)
 library(ROCR)
 library(maptree)
 library(tree)
+library(factoextra)
+library(cluster)
 ```
 
 ## import data
@@ -171,8 +175,10 @@ test.predict2 <- predict(fit2, testing)
 mean((train.predict2-training$Salary)^2)
 mean((test.predict2-testing$Salary)^2)
 
+
+# third and final fit model 
 fit3 <- lm(Salary ~ PPG, data= fit_data)
-summary
+summary(fit3)
 
 # predicted salaries for training and testing in fit1
 train.predict3 <- predict(fit3, training)
@@ -337,9 +343,6 @@ title("Classification Tree Built on Training Set")
 tree.pred = predict(tree.nba, testing, type="vector")
 tree.pred
 
-# error = table(tree.pred, high.test)
-# error
-
 # mean squared error
 y = mean((tree.pred-testing$Salary)^2)
 
@@ -381,21 +384,22 @@ title("Pruned tree of size")
 
 
 ```{r}
-# Now we are going to focus on calculating the respective test error rate for the model
+# Calculate the respective test error rate for the model
 
 # Predict on test set
-pred.pt.cv = predict(pt.cv, testing, type="vector")
+pred.pt.cv = predict(pt.cv, testing, type="class")
 
-# mean squared error
-x=mean((pred.pt.cv-testing$Salary)^2)
-x
-# root mean squared error
-m=sqrt(x)
-m
+# examine misclassification errors on training set
+print('training errors')
+classes_test <- as.data.frame(testing) %>% pull(High)
+train_errors_topt <- table(class = classes_test, pred = pred.pt.cv)
+train_errors_topt/rowSums(train_errors_topt)
 
+# test error rate for pt.cv for pt.cv is 0.27907
+
+# The MSE is lower with 7 nodes (8047525). So best. ???
 ```
 
-The mse is lower with 7 nodes( 8047525). So best.
 
 
 ## random forest
@@ -435,13 +439,38 @@ plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of
 our = scale(dat, center=TRUE, scale=TRUE)
 decomp = svd(our)
 names(decomp)
-
 decomp$v
-
 pr.out$rotation
-
 decomp$d^2/sum(decomp$d^2)
+
 pve
+
+```
+
+## Cluster
+```{r}
+scar  = scale(dat, center=TRUE, scale=TRUE)
+km = kmeans(scar, centers=2)
+km
+fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
+
+# Dim 1 is more influential. cluster 2 is skewed right
+
+# centering the winner data so we can find out the loadings for the first two PCs
+
+# data_svd <- svd(scar)
+# data_loadings <- data_svd$v[,1:2]
+# data_pc <- as.matrix(scar) %*% data_loadings 
+# colnames(data_loadings) <- colnames(data_pc) <- paste('PC', 1:2, sep = '')
+# 
+# Player <- our_data$Player %>% factor()
+# 
+# data_pc %>%
+#   as.data.frame() %>%
+#   #bind_cols((dplyr:: select(data, state, county, candidate))) %>%
+#   ggplot(aes(x = PC1, y = PC2)) +
+#   geom_point(alpha = 0.5, aes(color = Player)) +
+#   theme_bw()
 ```
 
 
