@@ -46,7 +46,7 @@ library(tree)
 # this is where we will import the data 
 
 # first dataset
-X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx")
+X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats Player Box Score  Advanced Metrics.xlsx")
 
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
 my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point_field goals_attempted', '2-point%', '3-point_field_goals_attempted', 'three_point_percent', 'effective_shooting_%' , 'True_shooting_%', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
@@ -115,11 +115,12 @@ salarycor <- reduced_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG
 
 #ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
+
+# Based from the correlation, we see that PPG > MPG > TPG > Value.Over.Replacement > APG > win.shares > Versatility Index > Box.Plus.Minus > Usage Rate > RPG > SPG > Free throw% > Offensive Rating > Defensive rating > BPG > Games.Played > three-point %
+
+# We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value_Over_Replacement, APG, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate.
 ```
 
-Based from the correlation, we see that PPG>MPG>TPG>Value.Over.Replacement>APG>win.shares>Versatility Index>Box.Plus.Minus> Usage Rate>RPG>SPG>Free throw%>Offensive Rating>Defensive rating>BPG>Games.Played>three-point %
-
-We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value_Over_Replacement, APG, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate.
 
 ```{r}
 our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, Value_Over_Replacement, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate)
@@ -146,17 +147,14 @@ testing <- as.data.frame(new_data$test)
 # linear regression for data
 
 # training data
-fit <- lm(Salary ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ Box_Plus_Minus + Usage_Rate, data = training)
-summary(fit)
+fit1 <- lm(Salary ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ Box_Plus_Minus + Usage_Rate, data = training)
+summary(fit1)
 
-# predicted salaries for training
-na.omit(training)
+# predicted salaries for training and testing in fit1
 train.predict <- predict(fit, training)
-
-# predicted salaries for testing
 test.predict <- predict(fit, testing)
 
-# MSE of train/test
+# MSE of training / testing
 mean((train.predict-training$Salary)^2)
 mean((test.predict-testing$Salary)^2)
 
@@ -165,38 +163,52 @@ mean((test.predict-testing$Salary)^2)
 fit2 <- lm(Salary ~ PPG + Usage_Rate + APG, data= training)
 summary(fit2)
 
-fit3 <- lm(Salary ~ PPG, data= fit_data)
-summary(fit3)
+# predicted salaries for training and testing in fit1
+train.predict2 <- predict(fit2, training)
+test.predict2 <- predict(fit2, testing)
 
+# MSE of training / testing
+mean((train.predict2-training$Salary)^2)
+mean((test.predict2-testing$Salary)^2)
+
+fit3 <- lm(Salary ~ PPG, data= fit_data)
+summary
+
+# predicted salaries for training and testing in fit1
+train.predict3 <- predict(fit3, training)
+test.predict3 <- predict(fit3, testing)
+
+# MSE of training / testing
+mean((train.predict3-training$Salary)^2)
+mean((test.predict3-testing$Salary)^2)
 
 ```
 
-## Training dataset 80%, testing 20%
-
-## regularized regression
+## regularized regression ??
 
 ## Logistic regression?
-Create a new variable, salarygreater: whether a player's salary is greater than mean 
-```{r}
-mean_train_salary <- mean(training$Salary)
-training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0),
-                                                                     levels=c(0, 1)))
-training_logit <- glm(salarygreater ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ 
-                        Box_Plus_Minus + Usage_Rate, data = training_salarymean, family = 'binomial')
 
-#prediction
+```{r}
+# a new variable will be created called salarygreater. 
+# This tests whether a player's salary is greater than the mean salary
+
+mean_train_salary <- mean(training$Salary)
+training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
+training_logit <- glm(salarygreater ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ 
+Box_Plus_Minus + Usage_Rate, data = training_salarymean, family = 'binomial')
+
+# prediction
 salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
 train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
 
-#testing error
+# testing error
 calc_error_rate <- function(predicted.value, true.value){
   return(mean(true.value!=predicted.value))
 }
 calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
 
 #and do the same with the testing error:
-testing_salarymean<- testing %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0),
-                                                               levels=c(0, 1)))
+testing_salarymean<- testing %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
 salarymean_pred_testing <- predict(training_logit,  testing_salarymean, type="response")
 test_maj_rule2 <- ifelse(salarymean_pred_testing > 0.5, 1,0)
 calc_error_rate(test_maj_rule2, testing_salarymean$salarygreater)
@@ -215,18 +227,10 @@ auc <- performance(pred, "auc")@y.values[[1]]
 auc
 ```
 
-## Training dataset 80%, testing 20%
+
+## Training, Testing for Ridge/ Lasso
 
 ```{r}
-# Set random seed
-set.seed(3112022)
-
-# Sample 80% observations as training data
-fit_data <- our_data[-1] 
-new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
-training <- as.data.frame(new_data$train)
-testing <- as.data.frame(new_data$test)
-
 x <- model.matrix(Salary~., fit_data)
 y <- fit_data$Salary
 
@@ -300,124 +304,99 @@ fit_data <- our_data[-1]
 new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
 training <- as.data.frame(new_data$train)
 testing <- as.data.frame(new_data$test)
+```
+ 
+## Categorical Decision Tree:
+
+```{r}
+# create a new column with High as a binary variable. It is "Yes" if the salary is greater than the median salary
+our_data <- our_data %>% mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
 high.test = our_data$High
-```
- 
-## Code for Categorical Decision Tree:
 
-```{r}
-# Create data frame with the original eleven variables and High
-our_data <- our_data %>%
-mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
-
-glimpse(our_data)
-tree_our_data=tree(Salary~.-Player -High,data = our_data) 
-
+tree_our_data=tree(Salary~. -Player-High , data = our_data) 
 summary(tree_our_data)
-```
- 
-```{r}
+
+# plot the fitted tree
 plot(tree_our_data)
-text(tree_our_data, pretty = 0, cex = .4, col = "red")
-title("decision tree on Our data", cex = 0.8)
+text(tree_our_data, pretty = 0, cex = .4, col = "blue")
+title("Decision tree on our_data", cex = 0.8)
 
 draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
 ```
- 
-```{r}
-# Set random seed for results being reproducible
-set.seed(3)
-# Get dimension of dataset
-dim(our_data)
-```
+
  
 ```{r}
 # Fit model on training set
-tree.nba = tree(Salary~., data = training)
+tree.nba = tree(High~. -Salary , data = training)
  
 # Plot the tree
 draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
 title("Classification Tree Built on Training Set")
  
-```
-
-
-```{r}
 # Predict on test set
 tree.pred = predict(tree.nba, testing, type="vector")
 tree.pred
-#mean squared error
-y=mean((tree.pred-testing$Salary)^2)
 
-#root mean squared error
+# error = table(tree.pred, high.test)
+# error
+
+# mean squared error
+y = mean((tree.pred-testing$Salary)^2)
+
+# root mean squared error
 z=sqrt(y)
 z
 ```
 
-
- 
  
 ```{r}
-# Set random seed
-set.seed(3)
+set.seed(3142022)
+
 # K=10-Fold cross validation
-cv = cv.tree(tree.nba, K=10)
-# Print out cv
-cv$size
-```
+cv = cv.tree(tree.nba, FUN= prune.misclass, K=10)
 
-```{r}
-cv$dev
-```
-
-```{r}
-# Best size
-# we prefer the tree with smaller size
+# the tree with smaller size
 best.cv = min(cv$size[cv$dev == min(cv$dev)])
 best.cv
-```
 
-```{r}
 # Plot size vs. cross-validation error rate
-plot(cv$size , cv$dev, type="b",
-xlab = "Number of leaves, \'best\'", ylab = "CV Misclassification Error",
-col = "red", main="CV")
+plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
+     ylab = "CV Misclassification Error", col = "red", main="CV")
 abline(v=best.cv, lty=2)
+
 # Add lines to identify complexity parameter
 min.error = which.min(cv$dev) # Get minimum error index
 abline(h = cv$dev[min.error],lty = 2)
 ```
 
 ```{r}
-# Prune tree.carseats
-pt.cv = prune.tree (tree.nba, best=best.cv)
+# Prune tree
+pt.cv = prune.tree(tree.nba, best=best.cv)
+
 # Plot pruned tree
 plot(pt.cv)
 text(pt.cv, pretty=0, col = "blue", cex = .5)
-title("Pruned tree of size 7")
+title("Pruned tree of size")
 ```
 
-*Now we are going to focus on calculating the respective test error rate for the model
 
 ```{r}
-
-
+# Now we are going to focus on calculating the respective test error rate for the model
 
 # Predict on test set
 pred.pt.cv = predict(pt.cv, testing, type="vector")
 
-#mean squared error
+# mean squared error
 x=mean((pred.pt.cv-testing$Salary)^2)
 x
-#root mean squared error
+# root mean squared error
 m=sqrt(x)
 m
-
 
 ```
 
 The mse is lower with 7 nodes( 8047525). So best.
 
+
 ## random forest
 
-## 
