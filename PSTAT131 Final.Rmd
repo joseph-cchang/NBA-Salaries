@@ -303,14 +303,11 @@ lasso.coef
 
 ```
 
-## Categorical Decision Tree:
+## Regression Decision Tree:
 
 ```{r}
-# create a new column with High as a binary variable. It is "Yes" if the salary is greater than the median salary
-our_data <- our_data %>% mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
-high.test = our_data$High
 
-tree_our_data=tree(Salary~. -Player-High , data = our_data) 
+tree_our_data=tree(Salary~. , data = our_data) 
 summary(tree_our_data)
 
 # plot the fitted tree
@@ -344,39 +341,39 @@ z
 ```{r}
 set.seed(3142022)
 
-# K=10-Fold cross validation
-# cv = cv.tree(tree.nba, FUN= prune.misclass, K=10)
-# 
-# # the tree with smaller size
-# best.cv = min(cv$size[cv$dev == min(cv$dev)])
-# best.cv
-# 
-# # Plot size vs. cross-validation error rate
-# plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
-#      ylab = "CV Misclassification Error", col = "red", main="CV")
-# abline(v=best.cv, lty=2)
-# 
-# # Add lines to identify complexity parameter
-# min.error = which.min(cv$dev) # Get minimum error index
-# abline(h = cv$dev[min.error],lty = 2)
+#K=10-Fold cross validation
+cv = cv.tree(tree.nba, K=10)
+
+# the tree with smaller size
+best.cv = min(cv$size[cv$dev == min(cv$dev)])
+best.cv
+
+# Plot size vs. cross-validation error rate
+ plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
+      ylab = "CV Misclassification Error", col = "red", main="CV")
+ abline(v=best.cv, lty=2)
+
+# Add lines to identify complexity parameter
+min.error = which.min(cv$dev) # Get minimum error index
+abline(h = cv$dev[min.error],lty = 2)
 ```
 
 ```{r}
 # Prune tree
-# pt.cv = prune.tree(tree.nba, best=best.cv)
-# 
+pt.cv = prune.tree(tree.nba, best=best.cv)
+
 # # Plot pruned tree
-# plot(pt.cv)
-# text(pt.cv, pretty=0, col = "blue", cex = .5)
-# title("Pruned tree of size")
+plot(pt.cv)
+text(pt.cv, pretty=0, col = "blue", cex = .5)
+title("Pruned tree of size")
 ```
 
 ```{r}
 # Calculate the respective test error rate for the model
 
 # Predict on test set
-# pred.pt.cv = predict(pt.cv, testing, type="class")
-# 
+pred.pt.cv = predict(pt.cv, testing, type="vector")
+ 
 # # examine misclassification errors on training set
 # print('training errors')
 # classes_test <- as.data.frame(testing) %>% pull(High)
