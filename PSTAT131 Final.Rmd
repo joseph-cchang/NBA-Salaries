@@ -44,7 +44,13 @@ library(factoextra)
 library(cluster)
 ```
 
+# Introduction
+
+Our project is \_\_\_
+
 ## import data
+
+First, we read in the data that we downloaded from \_\_\_\_\_.
 
 ```{r}
 # this is where we will import the data 
@@ -91,6 +97,8 @@ conversion2
 
 ## filter data
 
+We decided to filter out players who played more th
+
 ```{r}
 # filter players with games played over 10, then filter with total minutes played over 100
 reduced_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Player:Salary) %>% drop_na()
@@ -125,12 +133,9 @@ cor(salarycor)[,"Salary"]
 # We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value_Over_Replacement, APG, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate.
 ```
 
-
 ```{r}
 our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, Value_Over_Replacement, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate)
 ```
-
-
 
 ## training and testing data
 
@@ -233,7 +238,6 @@ auc <- performance(pred, "auc")@y.values[[1]]
 auc
 ```
 
-
 ## Training, Testing for Ridge/ Lasso
 
 ```{r}
@@ -298,7 +302,7 @@ lasso.coef = predict(out, type="coefficients", s=bestlam)
 lasso.coef
 
 ```
- 
+
 ## Categorical Decision Tree:
 
 ```{r}
@@ -317,7 +321,6 @@ title("Decision tree on our_data", cex = 0.8)
 draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
 ```
 
- 
 ```{r}
 # Fit model on training set
 tree.nba = tree(High~. -Salary , data = training)
@@ -338,7 +341,6 @@ z=sqrt(y)
 z
 ```
 
- 
 ```{r}
 set.seed(3142022)
 
@@ -369,7 +371,6 @@ text(pt.cv, pretty=0, col = "blue", cex = .5)
 title("Pruned tree of size")
 ```
 
-
 ```{r}
 # Calculate the respective test error rate for the model
 
@@ -387,12 +388,10 @@ train_errors_topt/rowSums(train_errors_topt)
 # The MSE is lower with 7 nodes (8047525). So best. ???
 ```
 
-
-
 ## random forest
 
+## PCA
 
-## PCA 
 ```{r}
 dat <- our_data %>% select(-1,-12)
 summary(dat)
@@ -435,6 +434,7 @@ pve
 ```
 
 ## Cluster
+
 ```{r}
 scar  = scale(dat, center=TRUE, scale=TRUE)
 km = kmeans(scar, centers=2)
@@ -460,4 +460,4 @@ fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
 #   theme_bw()
 ```
 
-
+# Conclusion
