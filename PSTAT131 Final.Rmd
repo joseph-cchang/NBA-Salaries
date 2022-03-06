@@ -305,18 +305,27 @@ lasso.coef
 
 ## Regression Decision Tree:
 
-```{r}
+Here, we start by using the tree() function to create a decision tree using our_data. Then we take a summary of this tree to see variables used in tree construction, number of terminal nodes, and residual information.
 
+```{r}
 tree_our_data=tree(Salary~. , data = our_data) 
 summary(tree_our_data)
+```
 
+Here we plot our decision tree using two different tree plotting functions, plot and draw tree. Both trees have 7 terminal nodes.
+
+```{r}
 # plot the fitted tree
 plot(tree_our_data)
 text(tree_our_data, pretty = 0, cex = .4, col = "blue")
 title("Decision tree on our_data", cex = 0.8)
+```
 
+```{r}
 draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
 ```
+
+Furthermore, we fit the regression decision tree model to the training set and plot the tree using the draw.tree() command.
 
 ```{r}
 # Fit model on training set
@@ -324,19 +333,31 @@ tree.nba = tree(Salary~. , data = training)
  
 # Plot the tree
 draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
-title("Classification Tree Built on Training Set")
- 
+title("Regression Tree Built on Training Set")
+```
+
+We can see in the summary that the tree modeled by the training set has 10 terminal nodes, whereas the previous tree only had 7 terminal nodes.
+
+```{r}
+summary(tree.nba)
+```
+
+Now here we do a prediction on the test set using the predict() command. We specify type='vector' because we are working with a regression decision tree. Then we calculate the mean squared error which is 6.68e+13 and root mean squared error which is 8173153.
+
+```{r}
 # Predict on test set
 tree.pred = predict(tree.nba, testing, type="vector")
 tree.pred
 
 # mean squared error
 y = mean((tree.pred-testing$Salary)^2)
-
+y
 # root mean squared error
 z=sqrt(y)
 z
 ```
+
+To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes, because he error is the lowest at that point.
 
 ```{r}
 set.seed(3142022)
@@ -357,6 +378,8 @@ best.cv
 min.error = which.min(cv$dev) # Get minimum error index
 abline(h = cv$dev[min.error],lty = 2)
 ```
+
+We can now plot the pruned tree with 9 terminal nodes. The mean squared error (MSE) is lowest when the number of terminal nodes is 9.
 
 ```{r}
 # Prune tree
