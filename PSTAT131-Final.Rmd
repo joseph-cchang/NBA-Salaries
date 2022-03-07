@@ -49,52 +49,49 @@ library(cluster)
 
 Our project is \_\_\_
 
-## import data
+## Read data
 
-First, we read in the data that we downloaded from \_\_\_\_\_.
+First, we read in the data that we downloaded. The first dataset is from a website called NBA stuffer, which contains many basketball statistics in an excel file. The second dataset is from kaggle and contains more basketball statistics, some different than the first dataset. The last dataset is from basketball-reference.com and lists out every players' salary in the 2021-2022 season. 
 
 ```{r}
-# this is where we will import the data 
-
-# first dataset
+# NBA stuffer
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx")
-
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
 my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point_field goals_attempted', '2-point%', '3-point_field_goals_attempted', 'three_point_percent', 'effective_shooting_%' , 'True_shooting_%', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
-# new_bball_stats
 
-# second dataset
+# kaggle
 labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes_played', 'Player_Efficiency_Rating', 'true_shooting_%', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage_rate', 'offensive_win_shares', 'defensive_win_shares', 'win_shares','win shares per 48 minutes', 'Offensive_Box Plus/Minus', 'Defensive_Box Plus/Minus','Box_Plus_Minus','Value_Over_Replacement')
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
-# data_advanced
 
-# salaries dataset
+# basektball-reference salaries
 labels2 <- c('Rank', 'Player', 'Salary', 'Use', 'Guaranteed')
 salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
-# salaries
 ```
 
-## Merge data
+## Merge data into "master" dataset
+
+This is where we merge the three datasets into one "master" dataset. This "master" dataset removes duplicated columns as well as columns that show unrelated/insignificant statistics. In addition, this "master" dataset changes all columns to dbl for more conveinient use later on.
 
 ```{r}
-# this is where we merge data
 combine <- inner_join(new_bball_stats, data_advanced, by = 'Player') %>% 
   inner_join(salaries, by = 'Player')
   
 # cut down all predictors to only 24 predictors
-selection <- subset(combine, select= -c(2:4,7,9,10,12:14,20,22,29:33,35:47,49:51,54,56:57))
+selection <- subset(combine, select= -c(2:4,7,9,12:14,20,22,29:33,35:47,49:51,54,56:57))
+selection <- subset(combine, select= -c(2:4,29:33,35:45,54,56:57))
 less_data <- selection %>% relocate(c(PPG,RPG,APG,SPG,BPG,TPG), .before = MPG)
-# less_data
 
 # Convert predictors in less_data all to dbl, not chr
 conversion <- less_data[,2:22] %>% mutate_if(is.character,as.numeric)
 conversion1 <- conversion %>% add_column(less_data$Player) 
 names(conversion1)[names(conversion1) == "less_data$Player"] <- "Player"
 conversion2 <- conversion1 %>% relocate((Player), .before = Games.Played)
-# conversion2
+
 ```
+
+offensive_win_shares, PER, free-throw attempted, min%
 
 ## filter data
 
@@ -103,7 +100,6 @@ We decided to filter out players who played more th
 ```{r}
 # filter players with games played over 10, then filter with total minutes played over 100
 reduced_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Player:Salary) %>% drop_na()
-# reduced_data
 ```
 
 ## Plot of response variable
@@ -119,14 +115,10 @@ hist(reduced_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Sa
 # correlation to see predictors vs other predictors in our_data2
 my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
 corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
-```
 
-## Correlation Check Part 2
-
-```{r}
+# second 
 salarycor <- reduced_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,Usage_Rate, Free_throw_percent, three_point_percent,Versatility_Index, Offensive_Rating, Defensive_Rating, win_shares, Box_Plus_Minus, Value_Over_Replacement) %>% drop_na()
 
-#ggpairs(salarycor)
 cor(salarycor)[,"Salary"]
 
 # Based from the correlation, we see that PPG > MPG > TPG > Value.Over.Replacement > APG > win.shares > Versatility Index > Box.Plus.Minus > Usage Rate > RPG > SPG > Free throw% > Offensive Rating > Defensive rating > BPG > Games.Played > three-point %
