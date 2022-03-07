@@ -57,12 +57,12 @@ First, we read in the data that we downloaded. The first dataset is from a websi
 # NBA stuffer
 X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx")
 bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
-my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games.Played', 'MPG', 'Minutes%', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point_field goals_attempted', '2-point%', '3-point_field_goals_attempted', 'three_point_percent', 'effective_shooting_%' , 'True_shooting_%', 'PPG', 'RPG', 'Total rebound %', 'APG', 'Assist %', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
+my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games_Played', 'MPG', 'Minutes_percent', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point_field goals_attempted', '2-point_percent', '3-point_field_goals_attempted', 'three_point_percent', 'effective_shooting_percent' , 'True_shooting_percent', 'PPG', 'RPG', 'Total_rebound_percent', 'APG', 'Assist_percent', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
 colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
 
 # kaggle
-labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes_played', 'Player_Efficiency_Rating', 'true_shooting_%', '3-point attempt rate', 'free-throw attempt rate', 'offensive rebound percentage', 'defensive rebound percentage', 'total rebound percentage', 'assist percentage', 'steal percentage', 'block percentage', 'turnover percentage', 'usage_rate', 'offensive_win_shares', 'defensive_win_shares', 'win_shares','win shares per 48 minutes', 'Offensive_Box Plus/Minus', 'Defensive_Box Plus/Minus','Box_Plus_Minus','Value_Over_Replacement')
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes_played', 'Player_Efficiency_Rating', 'true_shooting_percent', '3-point_attempt_rate', 'free-throw_attempt_rate', 'offensive_rebound_ percentage', 'defensive_rebound_percentage', 'total_rebound_percentage', 'assist_percentage', 'steal_percentage', 'block_percentage', 'turnover_percentage', 'usage_rate', 'offensive_win_shares', 'defensive_win_shares', 'win_shares','win_shares_per_48_minutes', 'Offensive_Box_Plus/Minus', 'Defensive_Box_Plus/Minus','Box_Plus_Minus','Value_Over_Replacement')
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 
 # basektball-reference salaries
@@ -72,63 +72,55 @@ salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 
 ## Merge data into "master" dataset
 
-This is where we merge the three datasets into one "master" dataset. This "master" dataset removes duplicated columns as well as columns that show unrelated/insignificant statistics. In addition, this "master" dataset changes all columns to dbl for more conveinient use later on.
+This is where we merge the three datasets into one "master" dataset. This "master" dataset removes duplicated columns as well as columns that show unrelated/insignificant statistics. In addition, this "master" dataset changes all columns (except Player and Salary) to dbl for more convenient use later on. Small remark: a new column called Total_Minutes was added to see if it has any effect on data.
 
 ```{r}
 combine <- inner_join(new_bball_stats, data_advanced, by = 'Player') %>% 
   inner_join(salaries, by = 'Player')
   
-# cut down all predictors to only 24 predictors
-selection <- subset(combine, select= -c(2:4,7,9,12:14,20,22,29:33,35:47,49:51,54,56:57))
-selection <- subset(combine, select= -c(2:4,29:33,35:45,54,56:57))
+selection <- subset(combine, select= -c(2:4,29:33,35:45,54,56:57)) 
 less_data <- selection %>% relocate(c(PPG,RPG,APG,SPG,BPG,TPG), .before = MPG)
 
-# Convert predictors in less_data all to dbl, not chr
-conversion <- less_data[,2:22] %>% mutate_if(is.character,as.numeric)
+conversion <- less_data[,2:35] %>% mutate_if(is.character,as.numeric) %>% mutate(Total_Minutes = Games_Played*MPG)
 conversion1 <- conversion %>% add_column(less_data$Player) 
 names(conversion1)[names(conversion1) == "less_data$Player"] <- "Player"
-conversion2 <- conversion1 %>% relocate((Player), .before = Games.Played)
-
+conversion2 <- conversion1 %>% relocate((Player), .before = Games_Played)
+conversion3 <- conversion2 %>% relocate((Total_Minutes), .before=MPG)
 ```
-
-offensive_win_shares, PER, free-throw attempted, min%
 
 ## filter data
 
-We decided to filter out players who played more th
+Next, we wanted to filter out players who did not see the court often or were injured during the season. Keeping such players otherwise would have skewed the data and produced outliers. Here, players with total minutes less than 336 minutes and less than 7 agmes were taken out. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
 
 ```{r}
-# filter players with games played over 10, then filter with total minutes played over 100
-reduced_data <- conversion2 %>% filter(Games.Played >= 10 & MPG > 10) %>% select(Player:Salary) %>% drop_na()
+reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336) %>% select(Player:Salary) %>% drop_na()
+```
+
+
+## Correlation to Salary
+
+Since there are still a lot of predictors (columns) left, we need a way to only show the important ones. The rest can be omitted. Thus, we used a correlation plot and found correlation coefficients as related to salary. 
+
+```{r}
+my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
+corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
+
+salarycor <- reduced_data %>% select(Salary, Games_Played:Value_Over_Replacement) %>% drop_na()
+cor(salarycor)[,"Salary"]
+```
+
+Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement
+
+```{r}
+our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, Value_Over_Replacement, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate)
 ```
 
 ## Plot of response variable
 
 ```{r}
-plot(reduced_data$Salary, ylab= "Salary", ylim=c(0, 50000000))
 hist(reduced_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges")
 ```
 
-## Check to see Correlation
-
-```{r}
-# correlation to see predictors vs other predictors in our_data2
-my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
-corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
-
-# second 
-salarycor <- reduced_data %>% select(Salary,Games.Played,PPG,RPG,APG,SPG,BPG,TPG,MPG,Usage_Rate, Free_throw_percent, three_point_percent,Versatility_Index, Offensive_Rating, Defensive_Rating, win_shares, Box_Plus_Minus, Value_Over_Replacement) %>% drop_na()
-
-cor(salarycor)[,"Salary"]
-
-# Based from the correlation, we see that PPG > MPG > TPG > Value.Over.Replacement > APG > win.shares > Versatility Index > Box.Plus.Minus > Usage Rate > RPG > SPG > Free throw% > Offensive Rating > Defensive rating > BPG > Games.Played > three-point %
-
-# We will filter those correlations above 0.5, meaning we will only use PPG, MPG, TPG,Value_Over_Replacement, APG, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate.
-```
-
-```{r}
-our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, Value_Over_Replacement, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate)
-```
 
 ## training and testing data
 
