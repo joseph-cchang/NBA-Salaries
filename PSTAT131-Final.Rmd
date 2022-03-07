@@ -84,7 +84,6 @@ names(conversion1)[names(conversion1) == "less_data$Player"] <- "Player"
 conversion2 <- conversion1 %>% relocate((Player), .before = Games_Played)
 conversion3 <- conversion2 %>% relocate((Total_Minutes), .before=MPG)
 ```
-
 ## filter data
 
 Next, we wanted to filter out players who did not see the court often or were injured during the season. Keeping such players otherwise would have skewed the data and produced outliers. Here, players with total minutes less than 336 minutes and less than 7 agmes were taken out. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
@@ -92,7 +91,6 @@ Next, we wanted to filter out players who did not see the court often or were in
 ```{r}
 reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336) %>% select(Player:Salary) %>% drop_na()
 ```
-
 
 ## Correlation to Salary
 
