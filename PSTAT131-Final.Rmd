@@ -14,15 +14,12 @@ knitr::opts_chunk$set(fig.width=7, fig.height=5, echo =TRUE, message=FALSE, warn
 options(digits = 4)
 ```
 
-## packages
+## Packages
+
+Here we installed necessary packages
 
 ```{r}
 #install.packages("tidyverse")
-#install.packages("corrplot")
-#install.packages("ggplot2")       
-#install.packages("GGally")
-#install.packages("factoextra")
-#install.packages("cluster")
 library(ggplot2)                     
 library(GGally)
 library(tidyverse)
@@ -111,24 +108,25 @@ cor(salarycor)[,"Salary"]
 
 Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement
 
-```{r}
-our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, Value_Over_Replacement, win_shares, Versatility_Index, Box_Plus_Minus, Usage_Rate)
-```
+## Final dataset and Histograms
 
-## Plot of response variable
+This is where we put the final dataset. It has our players, their salaries, and the 9 predictors we want. We will be refering to our_data the rest of the project. As a start to visualize the data, we plotted the response variable Salary using a histogram and another histogram consisting of PPG vs Salaries.
 
 ```{r}
-hist(reduced_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges")
+our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement)
+
+hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges", labels = TRUE)
+
+##### histogram of PPG vs salaries
 ```
 
 
 ## training and testing data
 
-```{r}
-# Set random seed
-set.seed(3112022)
+In our models we need testing and training datas. Training data will be 80% and testing will be 20%. Here we define them and will proceed with these in mind.
 
-# Sample 80% observations as training data
+```{r}
+set.seed(3112022)
 fit_data <- our_data[-1] 
 new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
 training <- as.data.frame(new_data$train)
@@ -137,48 +135,37 @@ testing <- as.data.frame(new_data$test)
 
 ## Linear regression
 
-```{r}
-# linear regression for data
+Our first model is linear regression. There were a total of 3 fitted models. The first model consists of all 9 predictors. Based from the summary of that first fit, the second fit contains only predictors that were significant. Since the first and second fit were closely aligned, the third fit looked at the summary of the first fit and chose more signicant predictors than the second fit. At the end of each fit, I calculated MSE for that respective fit.
 
-# training data
-fit1 <- lm(Salary ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ Box_Plus_Minus + Usage_Rate, data = training)
+```{r}
+fit1 <- lm(Salary ~ PPG + APG + MPG + TPG + MPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training)
 summary(fit1)
 
-# predicted salaries for training and testing in fit1
-# train.predict <- predict(fit, training)
-# test.predict <- predict(fit, testing)
-# 
-# # MSE of training / testing
-# mean((train.predict-training$Salary)^2)
-# mean((test.predict-testing$Salary)^2)
+train.predict1 <- predict(fit1, training)
+test.predict1 <- predict(fit1, testing)
+mean((train.predict1-training$Salary)^2)
+mean((test.predict1-testing$Salary)^2)
 
 
-# predictors that have high correlation with Salary (p-value less than 0.05)
-fit2 <- lm(Salary ~ PPG + Usage_Rate + APG, data= training)
+fit2 <- lm(Salary ~ PPG + APG + Value_Over_Replacement, data= training)
 summary(fit2)
 
-# predicted salaries for training and testing in fit1
 train.predict2 <- predict(fit2, training)
 test.predict2 <- predict(fit2, testing)
-
-# MSE of training / testing
 mean((train.predict2-training$Salary)^2)
 mean((test.predict2-testing$Salary)^2)
 
 
-# third and final fit model 
-fit3 <- lm(Salary ~ PPG, data= fit_data)
+fit3 <- lm(Salary ~ APG + Value_Over_Replacement, data= fit_data)
 summary(fit3)
 
-# predicted salaries for training and testing in fit1
 train.predict3 <- predict(fit3, training)
 test.predict3 <- predict(fit3, testing)
-
-# MSE of training / testing
 mean((train.predict3-training$Salary)^2)
 mean((test.predict3-testing$Salary)^2)
-
 ```
+
+Based from the 3 fitted models, I chose the model with the least MSE for training and testing. The first model had the least MSE for both training and testing so I will use fit1. This makes sense as the largest R-squared was fit1. 
 
 ## regularized regression ??
 
