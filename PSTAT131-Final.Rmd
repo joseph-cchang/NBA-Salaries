@@ -523,37 +523,37 @@ fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
 
 ## Function to predict
 ```{r}
-salary_prediction <- function(m, PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement){
-  
-  pre_new <- predict(m, data.frame(PPG = points, APG = assists, MPG = minutes, TPG = turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
-  
-  msg <- paste("PPG:", points, ",APG:", assists, ",MPG:", minutes, ",TPG:", turnovers, ",Minutes_percent:", minutes_p, ",free_throws_attempted:", free_throws, ",Offensive_Box_Plus_Minus:", offense_plus_minus, ",Value_Over_Replacement", value ," ==> Expected Salary: $", format(round(pre_new), big.mark = ","), sep = "")
-  
-  print(msg)
-}
+# salary_prediction <- function(m, PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement){
+#   
+#   pre_new <- predict(m, data.frame(PPG = points, APG = assists, MPG = minutes, TPG = turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
+#   
+#   msg <- paste("PPG:", points, ",APG:", assists, ",MPG:", minutes, ",TPG:", turnovers, ",Minutes_percent:", minutes_p, ",free_throws_attempted:", free_throws, ",Offensive_Box_Plus_Minus:", offense_plus_minus, ",Value_Over_Replacement", value ," ==> Expected Salary: $", format(round(pre_new), big.mark = ","), sep = "")
+#   
+#   print(msg)
+# }
+# 
+# 
+# model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = our_data)
+# salary_prediction(model, 16, APG = 4, 30, 3, 75, 400, 4.5, 3)
 
 
-model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = our_data)
-salary_prediction(model, 16, APG = 4, 30, 3, 75, 400, 4.5, 3)
-
-
-user.name <- readline(prompt = "Please type your name ")
-  print(paste("Users name is", user.name))
-  
-
-install.packages("nlme")
-library(nlme)
-
-salary_prediction <- function(m, PPG){
-  
-  pre_new <- predict(m, PPG = points)
-  
-  msg <- as.formula(paste("PPG:", points,  " :Expected Salary: $", pre_new))
-  print(paste(msg))
-}
-
-model <- lm(Salary ~ PPG, data = our_data)
-salary_prediction(model, 16)
+# user.name <- readline(prompt = "Please type your name ")
+#   print(paste("Users name is", user.name))
+#   
+# 
+# install.packages("nlme")
+# library(nlme)
+# 
+# salary_prediction <- function(m, PPG, APG){
+#   
+#   pre_new <- predict(m, c(PPG = points, APG = assists))
+#   
+#   msg <- paste("PPG:", points, ",APG", assists, " :Expected Salary: $", as.character(pre_new))
+#   print(msg)
+# }
+# 
+# model <- lm(Salary ~ PPG+APG, data = our_data)
+# salary_prediction(model, 16,3)
 ```
 
 
