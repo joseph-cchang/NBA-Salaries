@@ -99,7 +99,7 @@ colnames(bball_stats) <- my_colnames
 new_bball_stats <- bball_stats[-1,-1]
 
 # kaggle
-labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes_played', 'Player_Efficiency_Rating', 'true_shooting_percent', '3-point_attempt_rate', 'free-throw_attempt_rate', 'offensive_rebound_ percentage', 'defensive_rebound_percentage', 'total_rebound_percentage', 'assist_percentage', 'steal_percentage', 'block_percentage', 'turnover_percentage', 'usage_rate', 'offensive_win_shares', 'defensive_win_shares', 'win_shares','win_shares_per_48_minutes', 'Offensive_Box_Plus/Minus', 'Defensive_Box_Plus/Minus','Box_Plus_Minus','Value_Over_Replacement')
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes_played', 'Player_Efficiency_Rating', 'true_shooting_percent', '3-point_attempt_rate', 'free-throw_attempt_rate', 'offensive_rebound_ percentage', 'defensive_rebound_percentage', 'total_rebound_percentage', 'assist_percentage', 'steal_percentage', 'block_percentage', 'turnover_percentage', 'usage_rate', 'offensive_win_shares', 'defensive_win_shares', 'win_shares','win_shares_per_48_minutes', 'Offensive_Box_Plus_Minus', 'Defensive_Box_Plus_Minus','Box_Plus_Minus','Value_Over_Replacement')
 data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
 
 # basektball-reference salaries
@@ -145,14 +145,14 @@ salarycor <- reduced_data %>% select(Salary, Games_Played:Value_Over_Replacement
 cor(salarycor)[,"Salary"]
 ```
 
-Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement.
+Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement.
 
 ## Final dataset and Histograms
 
 This is where we put the final dataset. It has our players, their salaries, and the 8 predictors we want. We will be referring to our_data the rest of the project. As a start to visualize the data, we plotted the response variable Salary using a histogram and the scatter plots of Salary vs. the 8 predictors which has the greatest correlation with salary.
 
 ```{r}
-our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement)
+our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement)
 
 hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges", labels = TRUE)
 
@@ -168,7 +168,7 @@ plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot of Salary vs. 
    xlab="Salary", ylab="Minutes Percent", pch=19)
 plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws   Attempted",
    xlab="Salary", ylab="Free Throws Attempted", pch=19)
-plot(our_data$Salary, our_data$Offensive_Box_Plus.Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus",
+plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus",
    xlab="Salary", ylab="Offensive Box Plus Minus", pch=19)
 plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Salary vs. Value Over Replacement",
    xlab="Salary", ylab="Value Over Replacement", pch=19)
@@ -191,7 +191,7 @@ testing <- as.data.frame(new_data$test)
 Our first model is linear regression. There were a total of 3 fitted models. The first model consists of all 9 predictors. Based from the summary of that first fit, the second fit contains only predictors that were significant. Since the first and second fit were closely aligned, the third fit looked at the summary of the first fit and chose more signicant predictors than the second fit. At the end of each fit, I calculated MSE for that respective fit.
 
 ```{r}
-fit1 <- lm(Salary ~ PPG + APG + MPG + TPG + MPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training)
+fit1 <- lm(Salary ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
 summary(fit1)
 
 train.predict1 <- predict(fit1, training)
@@ -234,7 +234,7 @@ training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= 
 Next, we will fit a logistic regression on the "salarygreater" in the training dataset. After that, we will predict based on the "majority rule": if the predicted probability is greater than 0.5, classify the observation as 1, otherwise, classify it as 0.
 
 ```{r}
-training_logit <- glm(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training_salarymean, family = 'binomial')
+training_logit <- glm(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, family = 'binomial')
 
 salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
 train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
@@ -448,6 +448,7 @@ pr.out = prcomp(dat, scale = TRUE)
 pr.out$center
 pr.out$scale
 pr.out$rotation
+pr.out$x
 
 # plot 
 biplot(pr.out, scale = 0)
@@ -463,8 +464,12 @@ pve
 plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
 
+pr.out$rotation[,1]
 # we will consider the first two PCAs because they are the largest 2 values. 
 ```
+
+The first principal component explains 70% of the variance in data, the next principal component explains 10.48%.
+Having greater PPG is the best "indicator" for variance explained in data.
 
 ## Cluster
 
@@ -473,6 +478,7 @@ scar  = scale(dat, center=TRUE, scale=TRUE)
 km = kmeans(scar, centers=2)
 km
 fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
+
 
 # Dim 1 is more influential. cluster 2 is skewed right
 
@@ -491,6 +497,44 @@ fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
 #   ggplot(aes(x = PC1, y = PC2)) +
 #   geom_point(alpha = 0.5, aes(color = Player)) +
 #   theme_bw()
+
+
 ```
+
+## Function to predict
+```{r}
+salary_prediction <- function(m, PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement){
+  
+  pre_new <- predict(m, data.frame(PPG = points, APG = assists, MPG = minutes, TPG = turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
+  
+  msg <- paste("PPG:", points, ",APG:", assists, ",MPG:", minutes, ",TPG:", turnovers, ",Minutes_percent:", minutes_p, ",free_throws_attempted:", free_throws, ",Offensive_Box_Plus_Minus:", offense_plus_minus, ",Value_Over_Replacement", value ," ==> Expected Salary: $", format(round(pre_new), big.mark = ","), sep = "")
+  
+  print(msg)
+}
+
+
+model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = our_data)
+salary_prediction(model, 16, APG = 4, 30, 3, 75, 400, 4.5, 3)
+
+
+user.name <- readline(prompt = "Please type your name ")
+  print(paste("Users name is", user.name))
+  
+
+install.packages("nlme")
+library(nlme)
+
+salary_prediction <- function(m, PPG){
+  
+  pre_new <- predict(m, PPG = points)
+  
+  msg <- as.formula(paste("PPG:", points,  " :Expected Salary: $", pre_new))
+  print(paste(msg))
+}
+
+model <- lm(Salary ~ PPG, data = our_data)
+salary_prediction(model, 16)
+```
+
 
 # Conclusion
