@@ -273,6 +273,8 @@ auc <- performance(pred, "auc")@y.values[[1]]
 auc
 ```
 
+From the result of the errors and AUC, we can say that the logistic regression works pretty well on the "Salarygreater" variable.
+
 ## Training, Testing for Ridge/ Lasso
 
 ```{r}
@@ -287,8 +289,9 @@ y.test <- as.matrix(testing$Salary)
 
 ## Ridge / Lasso
 
+Ridge:
+
 ```{r}
-# ridge
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
 
 ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
@@ -297,9 +300,11 @@ ridge.pred_1=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", n
 
 ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
 mean((ridge.pred-y.test)^2)
+```
 
+Cross-validation to choose best tuning parameter:
 
-# cross-validation to choose best tuning parameter
+```{r}
 set.seed(3142022)
 cv.out.ridge = cv.glmnet(x.train, y.train, alpha= 0)
 plot(cv.out.ridge)
@@ -315,8 +320,9 @@ out = glmnet(x,y,alpha=0)
 predict(out, type="coefficients", s=bestlam)
 ```
 
+Lasso
+
 ```{r}
-# lasso
 set.seed(3142022)
 lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
 
@@ -340,15 +346,21 @@ lasso.coef
 
 ## Categorical Decision Tree:
 
+First, we will create a new column with High as a binary variable. It is "Yes" if the salary is greater than the median salary
+
 ```{r}
-# create a new column with High as a binary variable. It is "Yes" if the salary is greater than the median salary
+
 our_data <- our_data %>% mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
 high.test = our_data$High
 
 tree_our_data=tree(Salary~. -Player-High , data = our_data) 
 summary(tree_our_data)
 
-# plot the fitted tree
+```
+
+Next, we will plot the fitted tree
+
+```{r}
 plot(tree_our_data)
 text(tree_our_data, pretty = 0, cex = .4, col = "blue")
 title("Decision tree on our_data", cex = 0.8)
@@ -356,22 +368,36 @@ title("Decision tree on our_data", cex = 0.8)
 draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
 ```
 
+Then we will fit model on training set
+
 ```{r}
-# Fit model on training set
 tree.nba = tree(Salary~. , data = training)
  
-# Plot the tree
+```
+
+Plot the tree
+
+```{r}
 draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
 title("Classification Tree Built on Training Set")
- 
-# Predict on test set
+```
+
+Predict on test set
+
+```{r}
 tree.pred = predict(tree.nba, testing, type="vector")
 tree.pred
+```
 
-# mean squared error
+Mean squared error
+
+```{r}
 y = mean((tree.pred-testing$Salary)^2)
+```
 
-# root mean squared error
+Root mean squared error
+
+```{r}
 z=sqrt(y)
 z
 ```
@@ -430,33 +456,54 @@ set.seed(3142022)
 ```{r}
 dat <- our_data %>% select(-1,-12)
 summary(dat)
+```
 
-# check variance of each variable in our_data
+Check variance of each variable in our_data
+
+```{r}
 apply(dat, 2, var)
+```
 
-# Principle component Analysis
+Principle component Analysis
+
+```{r}
 pr.out = prcomp(dat, scale = TRUE)
-# center is the mean and scale is the standard deviation
+```
+
+Center is the mean and scale is the standard deviation
+
+```{r}
 pr.out$center
 pr.out$scale
 pr.out$rotation
+```
 
-  
-# plot 
+Plot
+
+```{r}
 biplot(pr.out, scale = 0)
+```
 
-# number of prinicipal components needed
+Number of prinicipal components needed
+
+```{r}
 pr.out$sdev
 pr.var = pr.out$sdev^2
 pr.var
 pve = pr.var/sum(pr.var)
 pve
+```
 
-# plot 
+Plot
+
+```{r}
 plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
+```
 
-# compute PCA
+Compute PCA
+
+```{r}
 our = scale(dat, center=TRUE, scale=TRUE)
 decomp = svd(our)
 names(decomp)
@@ -465,8 +512,9 @@ pr.out$rotation
 decomp$d^2/sum(decomp$d^2)
 
 pve
-# we will consider the first two PCAs because they are the largest 2 values. 
 ```
+
+We will consider the first two PCAs because they are the largest 2 values.
 
 ## Cluster
 
