@@ -145,11 +145,11 @@ salarycor <- reduced_data %>% select(Salary, Games_Played:Value_Over_Replacement
 cor(salarycor)[,"Salary"]
 ```
 
-Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement.
+Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement.
 
 ## Final dataset and Histograms
 
-This is where we put the final dataset. It has our players, their salaries, and the 9 predictors we want. We will be referring to our_data the rest of the project. As a start to visualize the data, we plotted the response variable Salary using a histogram and the scatter plots of Salary vs. the 9 predictors which has the greatest correlation with salary.
+This is where we put the final dataset. It has our players, their salaries, and the 8 predictors we want. We will be referring to our_data the rest of the project. As a start to visualize the data, we plotted the response variable Salary using a histogram and the scatter plots of Salary vs. the 8 predictors which has the greatest correlation with salary.
 
 ```{r}
 our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement)
@@ -164,8 +164,6 @@ plot(our_data$Salary, our_data$MPG, main="Scatterplot Salary vs. MPG",
    xlab="Salary", ylab="MPG", pch=19)
 plot(our_data$Salary, our_data$TPG, main="Scatterplot Salary vs. TPG",
    xlab="Salary", ylab="TPG", pch=19)
-plot(our_data$Salary, our_data$PPG, main="Scatterplot Salary vs. MPG",
-   xlab="Salary", ylab="MPG", pch=19)
 plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot Salary vs. Minutes_percent",
    xlab="Salary", ylab="Minutes_percent", pch=19)
 plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot Salary vs. free_throws_attempted",
@@ -236,7 +234,7 @@ training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= 
 Next, we will fit a logistic regression on the "salarygreater" in the training dataset. After that, we will predict based on the "majority rule": if the predicted probability is greater than 0.5, classify the observation as 1, otherwise, classify it as 0.
 
 ```{r}
-training_logit <- glm(salarygreater ~ PPG + APG + MPG + TPG + MPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training_salarymean, family = 'binomial')
+training_logit <- glm(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training_salarymean, family = 'binomial')
 
 salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
 train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
