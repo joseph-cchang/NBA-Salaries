@@ -224,41 +224,53 @@ Based from the 3 fitted models, I chose the model with the least MSE for trainin
 
 ## Logistic regression
 
-```{r}
-# a new variable will be created called salarygreater. 
-# This tests whether a player's salary is greater than the mean salary
+Since all the nine variables we are going to use are numeric variables, and the logistic regression cannot be used to analyze numeric variables, we will create a new predictor called "salarygreater". "Salarygreater" tests whether a player's salary is greater than the average salary of the league. By producing this new binomial predictor, we can use logistic regression to analyze the salary condition of the players in a new perspective.
 
+First, we will calculate the average salary of all players, and create the new binary variable "salarygreater" in the training dataset to test whether a certain player's salary is greater than the average. If the player's salary is greater than the average, it will show "1" in the "salarygreater"; if not, it will show "0".
+
+```{r}
 mean_train_salary <- mean(training$Salary)
 training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
-training_logit <- glm(salarygreater ~ PPG + MPG+TPG+Value_Over_Replacement+APG+win_shares+ Versatility_Index+ 
-Box_Plus_Minus + Usage_Rate, data = training_salarymean, family = 'binomial')
+```
 
-# prediction
+Next, we will fit a logistic regression on the "salarygreater" in the training dataset. After that, we will predict based on the "majority rule": if the predicted probability is greater than 0.5, classify the observation as 1, otherwise, classify it as 0.
+
+```{r}
+training_logit <- glm(salarygreater ~ PPG + APG + MPG + TPG + MPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training_salarymean, family = 'binomial')
+
 salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
 train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
+```
 
-# testing error
+After that, we will define a function called "calc_error_rate" and use it to calculate the error rate of the of the logistic model on the training dataset, which is created above.
+
+```{r}
 calc_error_rate <- function(predicted.value, true.value){
-  return(mean(true.value!=predicted.value))
-}
+  return(mean(true.value!=predicted.value))}
 calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
+```
 
-#and do the same with the testing error:
+Similary, we will do the same process on the testing dataset to predict based on the logistic model created above and calculate the test error.
+
+```{r}
 testing_salarymean<- testing %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
 salarymean_pred_testing <- predict(training_logit,  testing_salarymean, type="response")
 test_maj_rule2 <- ifelse(salarymean_pred_testing > 0.5, 1,0)
 calc_error_rate(test_maj_rule2, testing_salarymean$salarygreater)
+```
 
-#Now we can plot an ROC curve for the test data:
+Finally, we can plot an ROC curve and calculate the area under the curve (AUC) for the test data to see the performance of the logistic regression model.
+
+```{r}
 pred <- prediction(salarymean_pred_testing, testing_salarymean$salarygreater)
-
 perf <- performance(pred, measure = "tpr", x.measure = "fpr")
-
 plot(perf, col = 2, lwd = 3, main = "ROC curve")
-
 abline(0, 1)
+```
 
-#And calculate the area under the curve (AUC):
+AUC is shown below.
+
+```{r}
 auc <- performance(pred, "auc")@y.values[[1]]
 auc
 ```
