@@ -156,22 +156,22 @@ our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Min
 
 hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges", labels = TRUE)
 
-plot(our_data$Salary, our_data$PPG, main="Scatterplot Salary vs. PPG",
+plot(our_data$Salary, our_data$PPG, main="Scatterplot of Salary vs. PPG",
    xlab="Salary", ylab="PPG", pch=19)
-plot(our_data$Salary, our_data$APG, main="Scatterplot Salary vs. APG",
+plot(our_data$Salary, our_data$APG, main="Scatterplot of Salary vs. APG",
    xlab="Salary", ylab="APG", pch=19)
-plot(our_data$Salary, our_data$MPG, main="Scatterplot Salary vs. MPG",
+plot(our_data$Salary, our_data$MPG, main="Scatterplot of Salary vs. MPG",
    xlab="Salary", ylab="MPG", pch=19)
-plot(our_data$Salary, our_data$TPG, main="Scatterplot Salary vs. TPG",
+plot(our_data$Salary, our_data$TPG, main="Scatterplot of Salary vs. TPG",
    xlab="Salary", ylab="TPG", pch=19)
-plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot Salary vs. Minutes_percent",
-   xlab="Salary", ylab="Minutes_percent", pch=19)
-plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot Salary vs. free_throws_attempted",
-   xlab="Salary", ylab="free_throws_attempted", pch=19)
-plot(our_data$Salary, our_data$Offensive_Box_Plus.Minus, main="Scatterplot Salary vs. Offensive_Box_Plus.Minus",
-   xlab="Salary", ylab="Offensive_Box_Plus.Minus", pch=19)
-plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot Salary vs. Value_Over_Replacement",
-   xlab="Salary", ylab="Value_Over_Replacement", pch=19)
+plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot of Salary vs. Minutes Percent",
+   xlab="Salary", ylab="Minutes Percent", pch=19)
+plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws Attempted",
+   xlab="Salary", ylab="Free Throws Attempted", pch=19)
+plot(our_data$Salary, our_data$Offensive_Box_Plus.Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus",
+   xlab="Salary", ylab="Offensive Box Plus Minus", pch=19)
+plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Salary vs. Value Over Replacement",
+   xlab="Salary", ylab="Value Over Replacement", pch=19)
 ```
 
 ## Training and Testing data
