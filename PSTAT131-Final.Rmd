@@ -44,11 +44,51 @@ library(cluster)
 
 # Introduction
 
-Our project is \_\_\_
+After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes, live sports! From October to May we watch basketball stars like Lebron James dropping dimes, or Stephen Curry splashing from threes, but what factors lead these players to such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can actually range from \$377,645 all the way to \$45,780,966. In our project we use statistical variables such as "PPG", or "Offensive Rating" in different statistical machine learning models to predict the salaries of NBA players in the 2021-2022 season.
+
+Before we dive into the data, the definitions of the variables should be clarified first. All the variables contained in our datasets will be listed below.
+
+PPG: Points per game.
+
+RPG: Rebounds per game.
+
+APG: Assists per game.
+
+SPG: Steals per game.
+
+BPG: Blocks per game.
+
+TPG: Turnovers per game.
+
+MPG: Minutes per game.
+
+Usage Rate: an estimate of the percentage of team plays used by a player while he was on the floor.
+
+Free throw %: Free throw percentage.
+
+Three-point %: Three point shot percentage.
+
+Effective shooting %: a statistic that adjusts field goal percentage to account for the fact that three-point field goals count for three points while field goals only count for two points. Its goal is to show what field goal percentage a two-point shooter would have to shoot at to match the output of a player who also shoots three-pointers.
+
+True shooting %: an advanced statistic that measures a player's efficiency at shooting the ball. It is intended to more accurately calculate a player's shooting than field goal percentage, free throw percentage, and three-point field goal percentage taken individually.
+
+Versatility Index: measures a player's ability to produce in more than one statistic. The metric uses points, assists, and rebounds. The average player will score around a five on the index, while top players score above 10. Calculated by: Versatility Index Formula=[(PPG)\*(RPG)\*APG)]\^(0.333)
+
+Offensive Rating: measures an individual player's efficiency at producing points for the offense.
+
+Defensive rating: measures an individual player's efficiency at preventing the other team from scoring points.
+
+Player Efficiency Rating: a method of determining a player's impact on the game by measuring their per-minute performance. Rather than judging a player solely on their stats, their PER is a much more thorough performance indicator. It details a player and compares their value to that of other players in the league.
+
+Win shares: a player statistic which attempts to divvy up credit for team success to the individuals on the team.
+
+Box Plus Minus: estimates a basketball player's contribution to the team when that player is on the court.
+
+Value Over Replacement: estimates each player's overall contribution to the team, measured vs. what a theoretical "replacement player" would provide, where the "replacement player" is defined as a player on minimum salary or not a normal member of a team's rotation.
 
 ## Read data
 
-First, we read in the data that we downloaded. The first dataset is from a website called NBA stuffer, which contains many basketball statistics in an excel file. The second dataset is from kaggle and contains more basketball statistics, some different than the first dataset. The last dataset is from basketball-reference.com and lists out every players' salary in the 2021-2022 season. 
+First, we read in the data that we downloaded. The first dataset is from a website called NBA stuffer, which contains many basketball statistics in an excel file. The second dataset is from kaggle and contains more basketball statistics, some different than the first dataset. The last dataset is from basketball-reference.com and lists out every players' salary in the 2021-2022 season.
 
 ```{r}
 # NBA stuffer
@@ -84,7 +124,8 @@ names(conversion1)[names(conversion1) == "less_data$Player"] <- "Player"
 conversion2 <- conversion1 %>% relocate((Player), .before = Games_Played)
 conversion3 <- conversion2 %>% relocate((Total_Minutes), .before=MPG)
 ```
-## filter data
+
+## Filter data
 
 Next, we wanted to filter out players who did not see the court often or were injured during the season. Keeping such players otherwise would have skewed the data and produced outliers. Here, players with total minutes less than 336 minutes and less than 7 agmes were taken out. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
 
@@ -94,7 +135,7 @@ reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336)
 
 ## Correlation to Salary
 
-Since there are still a lot of predictors (columns) left, we need a way to only show the important ones. The rest can be omitted. Thus, we used a correlation plot and found correlation coefficients as related to salary. 
+Since there are still a lot of predictors (columns) left, we need a way to only show the important ones. The rest can be omitted. Thus, we used a correlation plot and found correlation coefficients as related to salary.
 
 ```{r}
 my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
@@ -104,22 +145,38 @@ salarycor <- reduced_data %>% select(Salary, Games_Played:Value_Over_Replacement
 cor(salarycor)[,"Salary"]
 ```
 
-Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement
+Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement.
 
 ## Final dataset and Histograms
 
-This is where we put the final dataset. It has our players, their salaries, and the 9 predictors we want. We will be refering to our_data the rest of the project. As a start to visualize the data, we plotted the response variable Salary using a histogram and another histogram consisting of PPG vs Salaries.
+This is where we put the final dataset. It has our players, their salaries, and the 9 predictors we want. We will be referring to our_data the rest of the project. As a start to visualize the data, we plotted the response variable Salary using a histogram and the scatter plots of Salary vs. the 9 predictors which has the greatest correlation with salary.
 
 ```{r}
 our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus.Minus, Value_Over_Replacement)
 
 hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges", labels = TRUE)
 
-##### histogram of PPG vs salaries
+plot(our_data$Salary, our_data$PPG, main="Scatterplot Salary vs. PPG",
+   xlab="Salary", ylab="PPG", pch=19)
+plot(our_data$Salary, our_data$APG, main="Scatterplot Salary vs. APG",
+   xlab="Salary", ylab="APG", pch=19)
+plot(our_data$Salary, our_data$MPG, main="Scatterplot Salary vs. MPG",
+   xlab="Salary", ylab="MPG", pch=19)
+plot(our_data$Salary, our_data$TPG, main="Scatterplot Salary vs. TPG",
+   xlab="Salary", ylab="TPG", pch=19)
+plot(our_data$Salary, our_data$PPG, main="Scatterplot Salary vs. MPG",
+   xlab="Salary", ylab="MPG", pch=19)
+plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot Salary vs. Minutes_percent",
+   xlab="Salary", ylab="Minutes_percent", pch=19)
+plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot Salary vs. free_throws_attempted",
+   xlab="Salary", ylab="free_throws_attempted", pch=19)
+plot(our_data$Salary, our_data$Offensive_Box_Plus.Minus, main="Scatterplot Salary vs. Offensive_Box_Plus.Minus",
+   xlab="Salary", ylab="Offensive_Box_Plus.Minus", pch=19)
+plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot Salary vs. Value_Over_Replacement",
+   xlab="Salary", ylab="Value_Over_Replacement", pch=19)
 ```
 
-
-## training and testing data
+## Training and Testing data
 
 In our models we need testing and training datas. Training data will be 80% and testing will be 20%. Here we define them and will proceed with these in mind.
 
@@ -163,11 +220,9 @@ mean((train.predict3-training$Salary)^2)
 mean((test.predict3-testing$Salary)^2)
 ```
 
-Based from the 3 fitted models, I chose the model with the least MSE for training and testing. The first model had the least MSE for both training and testing so I will use fit1. This makes sense as the largest R-squared was fit1. 
+Based from the 3 fitted models, I chose the model with the least MSE for training and testing. The first model had the least MSE for both training and testing so I will use fit1. This makes sense as the largest R-squared was fit1.
 
-## regularized regression ??
-
-## Logistic regression?
+## Logistic regression
 
 ```{r}
 # a new variable will be created called salarygreater. 
