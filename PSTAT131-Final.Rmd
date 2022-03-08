@@ -46,6 +46,8 @@ library(cluster)
 
 After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes, live sports! From October to May we watch basketball stars like Lebron James dropping dimes, or Stephen Curry splashing from threes, but what factors lead these players to such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can actually range from \$377,645 all the way to \$45,780,966. In our project we use statistical variables such as "PPG", or "Offensive Rating" in different statistical machine learning models to predict the salaries of NBA players in the 2021-2022 season.
 
+We apply several statistical machine learning models like logistic regression and clustering to the data in order to predict the salary of a player based on eight main predictors, carefully selected after several correlation calculations and observations. We plan to explore the benefits and detriments of each model, by calculating statistics such as mean squared error, area under the curve, etc. We hope you enjoy!
+
 Before we dive into the data, the definitions of the variables should be clarified first. All the variables contained in our datasets will be listed below.
 
 PPG: Points per game.
@@ -85,6 +87,7 @@ Win shares: a player statistic which attempts to divvy up credit for team succes
 Box Plus Minus: estimates a basketball player's contribution to the team when that player is on the court.
 
 Value Over Replacement: estimates each player's overall contribution to the team, measured vs. what a theoretical "replacement player" would provide, where the "replacement player" is defined as a player on minimum salary or not a normal member of a team's rotation.
+
 
 ## Read data
 
@@ -338,70 +341,93 @@ lasso.coef
 
 ```
 
-## Categorical Decision Tree:
+
+
+## Regression Decision Tree:
+
+Here, we start by using the tree() function to create a decision tree using our_data. Then we take a summary of this tree to see variables used in tree construction, number of terminal nodes, and residual information.
 
 ```{r}
-# create a new column with High as a binary variable. It is "Yes" if the salary is greater than the mean salary
+tree_our_data=tree(Salary~. , data = our_data) 
+summary(tree_our_data)
+```
 
-# testing and training sets
-training_high <- training %>% mutate(High=as.factor(ifelse(Salary <= mean(our_data$Salary), "No", "Yes")))
-high.train = training_high$High
+Here we plot our decision tree using two different tree plotting functions, plot and draw tree. Both trees have 7 terminal nodes.
 
-testing_high <- testing %>% mutate(High=as.factor(ifelse(Salary <= mean(our_data$Salary), "No", "Yes")))
-high.test = testing_high$High
-
-# fit model on training set
-tree_training_high = tree(High ~. -Salary, data = training_high) 
-summary(tree_training_high)
-
-# draw decision tree
-draw.tree(tree_training_high, nodeinfo=TRUE, cex = 0.9)
-title("Decision tree on training set", cex = 0.8)
-
-# Predict on test set
-tree.pred = predict(tree_training_high, testing_high, type="class")
-tree.pred
-
-# test error rate and confusion matrix
-error = table(tree.pred, high.test)
-error
-
-# test accuracy rate
-sum(diag(error))/sum(error)
-
-# test error rate
-1-sum(diag(error))/sum(error)
-
+```{r}
+# plot the fitted tree
+plot(tree_our_data)
+text(tree_our_data, pretty = 0, cex = .4, col = "blue")
+title("Decision tree on our_data", cex = 0.8)
 ```
 
 ```{r}
-# see if pruning will lead to lower test error rate
+draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
+```
 
-# K=10-Fold cross validation
-cv = cv.tree(tree_training_high, FUN= prune.misclass, K=5)
-cv$size
-cv$dev
+Furthermore, we fit the regression decision tree model to the training set and plot the tree using the draw.tree() command.
+
+```{r}
+# Fit model on training set
+tree.nba = tree(Salary~. , data = training)
+ 
+# Plot the tree
+draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
+title("Regression Tree Built on Training Set")
+```
+
+We can see in the summary that the tree modeled by the training set has 10 terminal nodes, whereas the previous tree had 12 terminal nodes.
+
+```{r}
+summary(tree.nba)
+```
+
+Now here we do a prediction on the test set using the predict() command. We specify type='vector' because we are working with a regression decision tree. Then we calculate the mean squared error which is 6.68e+13 and root mean squared error which is 8173153.
+
+```{r}
+# Predict on test set
+tree.pred = predict(tree.nba, testing, type="vector")
+tree.pred
+
+# mean squared error
+y = mean((tree.pred-testing$Salary)^2)
+y
+# root mean squared error
+z=sqrt(y)
+z
+```
+
+To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes, because the cross-validation misclassification error is the lowest at that point.
+
+```{r}
+set.seed(3142022)
+
+#K=10-Fold cross validation
+cv = cv.tree(tree.nba, K=10)
 
 # the tree with smaller size
 best.cv = min(cv$size[cv$dev == min(cv$dev)])
 best.cv
 
 # Plot size vs. cross-validation error rate
-plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
-     ylab = "CV Misclassification Error", col = "black", main="CV")
-abline(v=best.cv, lty=2)
+ plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
+      ylab = "CV Misclassification Error", col = "red", main="CV")
+ abline(v=best.cv, lty=2)
+
 # Add lines to identify complexity parameter
 min.error = which.min(cv$dev) # Get minimum error index
 abline(h = cv$dev[min.error],lty = 2)
 ```
 
+We can now plot the pruned tree with 9 terminal nodes. The mean squared error (MSE) is lowest when the number of terminal nodes is 9.
+
 ```{r}
 # Prune tree
-pt.cv = prune.tree(tree_training_high, best=best.cv)
+pt.cv = prune.tree(tree.nba, best=best.cv)
 
-# Plot pruned tree
+# # Plot pruned tree
 plot(pt.cv)
-text(pt.cv, pretty=0, col = "blue", cex = .9)
+text(pt.cv, pretty=0, col = "blue", cex = .5)
 title("Pruned tree of size")
 ```
 
@@ -409,18 +435,13 @@ title("Pruned tree of size")
 # Calculate the respective test error rate for the model
 
 # Predict on test set
-pred.pt.cv = predict(pt.cv, testing, type="class")
+pred.pt.cv = predict(pt.cv, testing, type="vector")
 
-# confusion matrix
-error.pt.cv <- table(pred.pt.cv, high.test)
-error.pt.cv
 
-1 - sum(diag(error.pt.cv))/sum(err.pt.cv)
-
-# examine misclassification errors on training set
-
+ 
+# # examine misclassification errors on training set
 # print('training errors')
-# classes_test <- as.data.frame(testing_high) %>% pull(High)
+# classes_test <- as.data.frame(testing) %>% pull(High)
 # train_errors_topt <- table(class = classes_test, pred = pred.pt.cv)
 # train_errors_topt/rowSums(train_errors_topt)
 
@@ -429,7 +450,6 @@ error.pt.cv
 # The MSE is lower with 7 nodes (8047525). So best. ???
 ```
 
-accuracy got worse after pruning
 
 ## random forest
 
