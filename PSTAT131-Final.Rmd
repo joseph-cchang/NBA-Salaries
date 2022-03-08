@@ -46,6 +46,8 @@ library(cluster)
 
 After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes, live sports! From October to May we watch basketball stars like Lebron James dropping dimes, or Stephen Curry splashing from threes, but what factors lead these players to such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can actually range from \$377,645 all the way to \$45,780,966. In our project we use statistical variables such as "PPG", or "Offensive Rating" in different statistical machine learning models to predict the salaries of NBA players in the 2021-2022 season.
 
+We apply several statistical machine learning models like logistic regression and clustering to the data in order to predict the salary of a player based on eight main predictors, carefully selected after several correlation calculations and observations. We plan to explore the benefits and detriments of each model, by calculating statistics such as mean squared error, area under the curve, etc. We hope you enjoy!
+
 Before we dive into the data, the definitions of the variables should be clarified first. All the variables contained in our datasets will be listed below.
 
 PPG: Points per game.
@@ -85,6 +87,7 @@ Win shares: a player statistic which attempts to divvy up credit for team succes
 Box Plus Minus: estimates a basketball player's contribution to the team when that player is on the court.
 
 Value Over Replacement: estimates each player's overall contribution to the team, measured vs. what a theoretical "replacement player" would provide, where the "replacement player" is defined as a player on minimum salary or not a normal member of a team's rotation.
+
 
 ## Read data
 
