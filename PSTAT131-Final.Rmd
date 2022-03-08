@@ -397,7 +397,7 @@ z=sqrt(y)
 z
 ```
 
-To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes, because he error is the lowest at that point.
+To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes, because the cross-validation misclassification error is the lowest at that point.
 
 ```{r}
 set.seed(3142022)
@@ -436,6 +436,8 @@ title("Pruned tree of size")
 
 # Predict on test set
 pred.pt.cv = predict(pt.cv, testing, type="vector")
+
+
  
 # # examine misclassification errors on training set
 # print('training errors')
