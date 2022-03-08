@@ -166,7 +166,7 @@ plot(our_data$Salary, our_data$TPG, main="Scatterplot of Salary vs. TPG",
    xlab="Salary", ylab="TPG", pch=19)
 plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot of Salary vs. Minutes Percent",
    xlab="Salary", ylab="Minutes Percent", pch=19)
-plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws Attempted",
+plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws   Attempted",
    xlab="Salary", ylab="Free Throws Attempted", pch=19)
 plot(our_data$Salary, our_data$Offensive_Box_Plus.Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus",
    xlab="Salary", ylab="Offensive Box Plus Minus", pch=19)
@@ -341,80 +341,86 @@ lasso.coef
 ## Categorical Decision Tree:
 
 ```{r}
-# create a new column with High as a binary variable. It is "Yes" if the salary is greater than the median salary
-our_data <- our_data %>% mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
-high.test = our_data$High
+# create a new column with High as a binary variable. It is "Yes" if the salary is greater than the mean salary
 
-tree_our_data=tree(Salary~. -Player-High , data = our_data) 
-summary(tree_our_data)
+# testing and training sets
+training_high <- training %>% mutate(High=as.factor(ifelse(Salary <= mean(our_data$Salary), "No", "Yes")))
+high.train = training_high$High
 
-# plot the fitted tree
-plot(tree_our_data)
-text(tree_our_data, pretty = 0, cex = .4, col = "blue")
-title("Decision tree on our_data", cex = 0.8)
+testing_high <- testing %>% mutate(High=as.factor(ifelse(Salary <= mean(our_data$Salary), "No", "Yes")))
+high.test = testing_high$High
 
-draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
-```
+# fit model on training set
+tree_training_high = tree(High ~. -Salary, data = training_high) 
+summary(tree_training_high)
 
-```{r}
-# Fit model on training set
-tree.nba = tree(Salary~. , data = training)
- 
-# Plot the tree
-draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
-title("Classification Tree Built on Training Set")
- 
+# draw decision tree
+draw.tree(tree_training_high, nodeinfo=TRUE, cex = 0.9)
+title("Decision tree on training set", cex = 0.8)
+
 # Predict on test set
-tree.pred = predict(tree.nba, testing, type="vector")
+tree.pred = predict(tree_training_high, testing_high, type="class")
 tree.pred
 
-# mean squared error
-y = mean((tree.pred-testing$Salary)^2)
+# test error rate and confusion matrix
+error = table(tree.pred, high.test)
+error
 
-# root mean squared error
-z=sqrt(y)
-z
+# test accuracy rate
+sum(diag(error))/sum(error)
+
+# test error rate
+1-sum(diag(error))/sum(error)
+
 ```
 
 ```{r}
-set.seed(3142022)
+# see if pruning will lead to lower test error rate
 
 # K=10-Fold cross validation
-# cv = cv.tree(tree.nba, FUN= prune.misclass, K=10)
-# 
-# # the tree with smaller size
-# best.cv = min(cv$size[cv$dev == min(cv$dev)])
-# best.cv
-# 
-# # Plot size vs. cross-validation error rate
-# plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
-#      ylab = "CV Misclassification Error", col = "red", main="CV")
-# abline(v=best.cv, lty=2)
-# 
-# # Add lines to identify complexity parameter
-# min.error = which.min(cv$dev) # Get minimum error index
-# abline(h = cv$dev[min.error],lty = 2)
+cv = cv.tree(tree_training_high, FUN= prune.misclass, K=5)
+cv$size
+cv$dev
+
+# the tree with smaller size
+best.cv = min(cv$size[cv$dev == min(cv$dev)])
+best.cv
+
+# Plot size vs. cross-validation error rate
+plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
+     ylab = "CV Misclassification Error", col = "black", main="CV")
+abline(v=best.cv, lty=2)
+# Add lines to identify complexity parameter
+min.error = which.min(cv$dev) # Get minimum error index
+abline(h = cv$dev[min.error],lty = 2)
 ```
 
 ```{r}
 # Prune tree
-# pt.cv = prune.tree(tree.nba, best=best.cv)
-# 
-# # Plot pruned tree
-# plot(pt.cv)
-# text(pt.cv, pretty=0, col = "blue", cex = .5)
-# title("Pruned tree of size")
+pt.cv = prune.tree(tree_training_high, best=best.cv)
+
+# Plot pruned tree
+plot(pt.cv)
+text(pt.cv, pretty=0, col = "blue", cex = .9)
+title("Pruned tree of size")
 ```
 
 ```{r}
 # Calculate the respective test error rate for the model
 
 # Predict on test set
-# pred.pt.cv = predict(pt.cv, testing, type="class")
-# 
-# # examine misclassification errors on training set
+pred.pt.cv = predict(pt.cv, testing, type="class")
+
+# confusion matrix
+error.pt.cv <- table(pred.pt.cv, high.test)
+error.pt.cv
+
+1 - sum(diag(error.pt.cv))/sum(err.pt.cv)
+
+# examine misclassification errors on training set
+
 # print('training errors')
-# classes_test <- as.data.frame(testing) %>% pull(High)
+# classes_test <- as.data.frame(testing_high) %>% pull(High)
 # train_errors_topt <- table(class = classes_test, pred = pred.pt.cv)
 # train_errors_topt/rowSums(train_errors_topt)
 
@@ -423,12 +429,14 @@ set.seed(3142022)
 # The MSE is lower with 7 nodes (8047525). So best. ???
 ```
 
+accuracy got worse after pruning
+
 ## random forest
 
 ## PCA
 
 ```{r}
-dat <- our_data %>% select(-1,-12)
+dat <- our_data %>% select(-1)
 summary(dat)
 
 # check variance of each variable in our_data
@@ -441,7 +449,6 @@ pr.out$center
 pr.out$scale
 pr.out$rotation
 
-  
 # plot 
 biplot(pr.out, scale = 0)
 
@@ -456,15 +463,6 @@ pve
 plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
 
-# compute PCA
-our = scale(dat, center=TRUE, scale=TRUE)
-decomp = svd(our)
-names(decomp)
-decomp$v
-pr.out$rotation
-decomp$d^2/sum(decomp$d^2)
-
-pve
 # we will consider the first two PCAs because they are the largest 2 values. 
 ```
 
