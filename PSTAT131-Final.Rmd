@@ -40,6 +40,7 @@ library(maptree)
 library(tree)
 library(factoextra)
 library(cluster)
+library(randomForest)
 ```
 
 # Introduction
@@ -449,7 +450,32 @@ set.seed(3142022)
 # The MSE is lower with 7 nodes (8047525). So best. ???
 ```
 
-## random forest
+## Random forest
+
+First, we will create a random forest model
+```{r}
+rf_our_data=randomForest(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training_salarymean,mtry=3, ntree=500, importance=TRUE) 
+rf_our_data
+plot(rf_our_data)
+```
+
+Then we will calculate the tesing error rate.
+```{r}
+yhat.rf = predict (rf_our_data, newdata = testing_salarymean)
+# Confusion matrix
+rf.err = table(pred = yhat.rf, truth = testing_salarymean$salarygreater) 
+test.rf.err = 1 - sum(diag(rf.err))/sum(rf.err) 
+test.rf.err
+```
+
+The testing error rat eis 0.1948.
+
+Next, we will also get a plot with decreasing order of importance based on Model Accuracy and Gini value.
+
+```{r}
+varImpPlot(rf_our_data, sort=T, main="Variable Importance for rf_our_data", n.var=5)
+```
+The results indicate that across all of the trees considered in the random forest, PPG is by far the most important variable in terms of Model Accuracy and Gini index.
 
 ## PCA
 
