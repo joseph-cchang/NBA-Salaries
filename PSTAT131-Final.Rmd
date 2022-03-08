@@ -40,6 +40,7 @@ library(maptree)
 library(tree)
 library(factoextra)
 library(cluster)
+library(randomForest)
 ```
 
 # Introduction
@@ -273,6 +274,8 @@ auc <- performance(pred, "auc")@y.values[[1]]
 auc
 ```
 
+From the result of the errors and AUC, we can say that the logistic regression works pretty well on the "Salarygreater" variable.
+
 ## Training, Testing for Ridge/ Lasso
 
 ```{r}
@@ -287,8 +290,9 @@ y.test <- as.matrix(testing$Salary)
 
 ## Ridge / Lasso
 
+Ridge:
+
 ```{r}
-# ridge
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
 
 ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
@@ -297,9 +301,11 @@ ridge.pred_1=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", n
 
 ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
 mean((ridge.pred-y.test)^2)
+```
 
+Cross-validation to choose best tuning parameter:
 
-# cross-validation to choose best tuning parameter
+```{r}
 set.seed(3142022)
 cv.out.ridge = cv.glmnet(x.train, y.train, alpha= 0)
 plot(cv.out.ridge)
@@ -315,8 +321,9 @@ out = glmnet(x,y,alpha=0)
 predict(out, type="coefficients", s=bestlam)
 ```
 
+Lasso
+
 ```{r}
-# lasso
 set.seed(3142022)
 lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
 
@@ -340,15 +347,34 @@ lasso.coef
 
 ## Categorical Decision Tree:
 
+First, we will create a new column with High as a binary variable. It is "Yes" if the salary is greater than the median salary
+
 ```{r}
+<<<<<<< HEAD
 # create a new column with High as a binary variable. It is "Yes" if the salary is greater than the mean salary
+=======
+
+our_data <- our_data %>% mutate(High=as.factor(ifelse(Salary <= median(Salary), "No", "Yes")))
+high.test = our_data$High
+>>>>>>> 92fb7c1647ee1f02cbb6917797b6d47ae837e89a
 
 # testing and training sets
 training_high <- training %>% mutate(High=as.factor(ifelse(Salary <= mean(our_data$Salary), "No", "Yes")))
 high.train = training_high$High
 
+<<<<<<< HEAD
 testing_high <- testing %>% mutate(High=as.factor(ifelse(Salary <= mean(our_data$Salary), "No", "Yes")))
 high.test = testing_high$High
+=======
+```
+
+Next, we will plot the fitted tree
+
+```{r}
+plot(tree_our_data)
+text(tree_our_data, pretty = 0, cex = .4, col = "blue")
+title("Decision tree on our_data", cex = 0.8)
+>>>>>>> 92fb7c1647ee1f02cbb6917797b6d47ae837e89a
 
 # fit model on training set
 tree_training_high = tree(High ~. -Salary, data = training_high) 
@@ -358,10 +384,35 @@ summary(tree_training_high)
 draw.tree(tree_training_high, nodeinfo=TRUE, cex = 0.9)
 title("Decision tree on training set", cex = 0.8)
 
+<<<<<<< HEAD
 # Predict on test set
 tree.pred = predict(tree_training_high, testing_high, type="class")
-tree.pred
+=======
+Then we will fit model on training set
 
+```{r}
+tree.nba = tree(Salary~. , data = training)
+ 
+```
+
+Plot the tree
+
+```{r}
+draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
+title("Classification Tree Built on Training Set")
+```
+
+Predict on test set
+
+```{r}
+tree.pred = predict(tree.nba, testing, type="vector")
+>>>>>>> 92fb7c1647ee1f02cbb6917797b6d47ae837e89a
+tree.pred
+```
+
+Mean squared error
+
+<<<<<<< HEAD
 # test error rate and confusion matrix
 error = table(tree.pred, high.test)
 error
@@ -372,6 +423,17 @@ sum(diag(error))/sum(error)
 # test error rate
 1-sum(diag(error))/sum(error)
 
+=======
+```{r}
+y = mean((tree.pred-testing$Salary)^2)
+```
+
+Root mean squared error
+
+```{r}
+z=sqrt(y)
+z
+>>>>>>> 92fb7c1647ee1f02cbb6917797b6d47ae837e89a
 ```
 
 ```{r}
@@ -429,42 +491,111 @@ error.pt.cv
 # The MSE is lower with 7 nodes (8047525). So best. ???
 ```
 
+<<<<<<< HEAD
 accuracy got worse after pruning
 
 ## random forest
+=======
+## Random forest
+
+First, we will create a random forest model
+```{r}
+rf_our_data=randomForest(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus.Minus + Value_Over_Replacement, data = training_salarymean,mtry=3, ntree=500, importance=TRUE) 
+rf_our_data
+plot(rf_our_data)
+```
+
+Then we will calculate the tesing error rate.
+```{r}
+yhat.rf = predict (rf_our_data, newdata = testing_salarymean)
+# Confusion matrix
+rf.err = table(pred = yhat.rf, truth = testing_salarymean$salarygreater) 
+test.rf.err = 1 - sum(diag(rf.err))/sum(rf.err) 
+test.rf.err
+```
+
+The testing error rat eis 0.1948.
+
+Next, we will also get a plot with decreasing order of importance based on Model Accuracy and Gini value.
+
+```{r}
+varImpPlot(rf_our_data, sort=T, main="Variable Importance for rf_our_data", n.var=5)
+```
+The results indicate that across all of the trees considered in the random forest, PPG is by far the most important variable in terms of Model Accuracy and Gini index.
+>>>>>>> 92fb7c1647ee1f02cbb6917797b6d47ae837e89a
 
 ## PCA
 
 ```{r}
 dat <- our_data %>% select(-1)
 summary(dat)
+```
 
-# check variance of each variable in our_data
+Check variance of each variable in our_data
+
+```{r}
 apply(dat, 2, var)
+```
 
-# Principle component Analysis
+Principle component Analysis
+
+```{r}
 pr.out = prcomp(dat, scale = TRUE)
-# center is the mean and scale is the standard deviation
+```
+
+Center is the mean and scale is the standard deviation
+
+```{r}
 pr.out$center
 pr.out$scale
 pr.out$rotation
+```
 
+<<<<<<< HEAD
 # plot 
-biplot(pr.out, scale = 0)
+=======
+Plot
 
-# number of prinicipal components needed
+```{r}
+>>>>>>> 92fb7c1647ee1f02cbb6917797b6d47ae837e89a
+biplot(pr.out, scale = 0)
+```
+
+Number of prinicipal components needed
+
+```{r}
 pr.out$sdev
 pr.var = pr.out$sdev^2
 pr.var
 pve = pr.var/sum(pr.var)
 pve
+```
 
-# plot 
+Plot
+
+```{r}
 plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
-
-# we will consider the first two PCAs because they are the largest 2 values. 
 ```
+
+<<<<<<< HEAD
+# we will consider the first two PCAs because they are the largest 2 values. 
+=======
+Compute PCA
+
+```{r}
+our = scale(dat, center=TRUE, scale=TRUE)
+decomp = svd(our)
+names(decomp)
+decomp$v
+pr.out$rotation
+decomp$d^2/sum(decomp$d^2)
+
+pve
+>>>>>>> 92fb7c1647ee1f02cbb6917797b6d47ae837e89a
+```
+
+We will consider the first two PCAs because they are the largest 2 values.
 
 ## Cluster
 
