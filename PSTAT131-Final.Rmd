@@ -40,6 +40,7 @@ library(maptree)
 library(tree)
 library(factoextra)
 library(cluster)
+library(randomForest)
 ```
 
 # Introduction
@@ -452,6 +453,33 @@ pred.pt.cv = predict(pt.cv, testing, type="vector")
 
 
 ## random forest
+
+First, we will fit a random forest model on the "Salarygreater" variable whichis whether a player's salary is greater than the average salary of the league. 
+
+```{r}
+rf_our_data = randomForest(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, mtry=3, ntree=500, importance=TRUE)
+rf_our_data                        
+```
+
+Next, we will check the error rate on the test dataset.
+```{r}
+yhat.rf = predict (rf_our_data, newdata = testing_salarymean)
+# Confusion matrix
+rf.err = table(pred = yhat.rf, truth = testing_salarymean$salarygreater) 
+test.rf.err = 1 - sum(diag(rf.err))/sum(rf.err) 
+test.rf.err
+```
+
+The test set error rate is 0.1818.
+
+
+Then we will get a plot with decreasing order of importance based on Model Accuracy and Gini value.
+```{r}
+varImpPlot(rf_our_data, sort=T, main="Variable Importance for rf_our_data", n.var=5)
+```
+
+From the graphs we can see that among all the trees in the random forest, PPG is the most important variable in terms of Model Accuracy and Gini index.
+
 
 ## PCA
 
