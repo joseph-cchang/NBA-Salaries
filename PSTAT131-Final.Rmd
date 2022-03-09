@@ -3,6 +3,7 @@ title: "PSTAT131 Final Project"
 author: "Joseph Chang, Tom Wei, Akul Bajaj"
 date: "3/11/2022"
 output:
+  pdf_document: default
   html_document:
     code_folding: hide
 df_print: paged
