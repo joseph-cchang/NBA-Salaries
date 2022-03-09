@@ -89,6 +89,11 @@ Box Plus Minus: estimates a basketball player's contribution to the team when th
 
 Value Over Replacement: estimates each player's overall contribution to the team, measured vs. what a theoretical "replacement player" would provide, where the "replacement player" is defined as a player on minimum salary or not a normal member of a team's rotation.
 
+Minutes Percent: percentage of team minutes used by a player while he was on the floor.
+
+Free throws attempted: total number of free throws attempted.
+
+Offensive box plus minus: estimates a basketball player's offensive contribution to the team when that player is on the court.
 
 ## Read data
 
@@ -342,8 +347,6 @@ lasso.coef
 
 ```
 
-
-
 ## Regression Decision Tree:
 
 Here, we start by using the tree() function to create a decision tree using our_data. Then we take a summary of this tree to see variables used in tree construction, number of terminal nodes, and residual information.
@@ -451,10 +454,9 @@ pred.pt.cv = predict(pt.cv, testing, type="vector")
 # The MSE is lower with 7 nodes (8047525). So best. ???
 ```
 
-
 ## random forest
 
-First, we will fit a random forest model on the "Salarygreater" variable whichis whether a player's salary is greater than the average salary of the league. 
+First, we will fit a random forest model on the "Salarygreater" variable whichis whether a player's salary is greater than the average salary of the league.
 
 ```{r}
 rf_our_data = randomForest(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, mtry=3, ntree=500, importance=TRUE)
@@ -462,6 +464,7 @@ rf_our_data
 ```
 
 Next, we will check the error rate on the test dataset.
+
 ```{r}
 yhat.rf = predict (rf_our_data, newdata = testing_salarymean)
 # Confusion matrix
@@ -472,14 +475,13 @@ test.rf.err
 
 The test set error rate is 0.1818.
 
-
 Then we will get a plot with decreasing order of importance based on Model Accuracy and Gini value.
+
 ```{r}
 varImpPlot(rf_our_data, sort=T, main="Variable Importance for rf_our_data", n.var=5)
 ```
 
 From the graphs we can see that among all the trees in the random forest, PPG is the most important variable in terms of Model Accuracy and Gini index.
-
 
 ## PCA
 
@@ -516,8 +518,7 @@ pr.out$rotation[,1]
 # we will consider the first two PCAs because they are the largest 2 values. 
 ```
 
-The first principal component explains 70% of the variance in data, the next principal component explains 10.48%.
-Having greater PPG is the best "indicator" for variance explained in data.
+The first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Having greater PPG is the best "indicator" for variance explained in data.
 
 ## Cluster
 
@@ -550,6 +551,7 @@ fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
 ```
 
 ## Function to predict
+
 ```{r}
 # salary_prediction <- function(m, PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement){
 #   
@@ -583,6 +585,5 @@ fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
 # model <- lm(Salary ~ PPG+APG, data = our_data)
 # salary_prediction(model, 16,3)
 ```
-
 
 # Conclusion
