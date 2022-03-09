@@ -49,6 +49,8 @@ After a long nine to five at work, many people across the United States look to 
 
 We apply several statistical machine learning models like logistic regression and clustering to the data in order to predict the salary of a player based on eight main predictors, carefully selected after several correlation calculations and observations. We plan to explore the benefits and detriments of each model, by calculating statistics such as mean squared error, area under the curve, etc. We hope you enjoy!
 
+Some of players maybe repeated because he got traded during the season.
+
 Before we dive into the data, the definitions of the variables should be clarified first. All the variables contained in our datasets will be listed below.
 
 PPG: Points per game.
@@ -194,6 +196,10 @@ new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8))
 training <- as.data.frame(new_data$train)
 testing <- as.data.frame(new_data$test)
 ```
+
+## Exploratory Data Analysis
+
+Our linear regression, logistic regression, ridge and lasso, regression decision tree, and random forest use the same training dataset, which contains 309 observations; and the same testing dataset, which contains 77 observations, 386 players in total.
 
 ## Linear regression
 
