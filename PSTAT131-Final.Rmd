@@ -398,7 +398,6 @@ Now here we do a prediction on the test set using the predict() command. We spec
 ```{r}
 # Predict on test set
 tree.pred = predict(tree.nba, testing, type="vector")
-tree.pred
 
 # mean squared error
 y = mean((tree.pred-testing$Salary)^2)
@@ -444,7 +443,6 @@ title("Pruned tree of size")
 ```{r}
 # Predict on test set
 pred.pt.cv = predict(pt.cv, testing, type="vector")
-pred.pt.cv
 
 # mean squared error
 w = mean((pred.pt.cv-testing$Salary)^2)
