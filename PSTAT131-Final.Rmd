@@ -150,11 +150,13 @@ reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336)
 Since there are still a lot of predictors (columns) left, we need a way to only show the important ones. The rest can be omitted. Thus, we used a correlation plot and found correlation coefficients as related to salary.
 
 ```{r}
+mfrow
 my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
 corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
 
 salarycor <- reduced_data %>% select(Salary, Games_Played:Value_Over_Replacement) %>% drop_na()
-cor(salarycor)[,"Salary"]
+corr_Salary <- cor(salarycor)[,"Salary"]
+corr_Salary[which(corr_Salary > 0.6)]
 ```
 
 Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement.
@@ -311,6 +313,9 @@ I chose to do ridge & lasso because it eliminates overfitting through regulariza
 To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front means all predictors except the response variable (Salary). The y in front signifies the response (Salary)
 
 ```{r}
+x <- model.matrix(Salary ~ ., data= fit_data)
+y <- fit_data$Salary
+
 x.train <- as.matrix(training[,-1])
 y.train <- as.matrix(training$Salary)
 x.test <- as.matrix(testing[,-1])
@@ -318,15 +323,15 @@ y.test <- as.matrix(testing$Salary)
 ```
 
 ## Ridge / Lasso
-
-This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds on the training data to predict the coefficients of each predictor. This shows how much ... 
+# Ridge regression
+This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor. This represents the distance of each predictor to the response. The lower the distance, the better. 
 
 ```{r}
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
 
 ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
 
-ridge.pred_1=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", newx=x.test)
+ridge.pred_1 = predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", newx=x.test)
 ```
 
 Then, I found the mean squared error for this ridge model.
@@ -334,10 +339,11 @@ Then, I found the mean squared error for this ridge model.
 ```{r}
 ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
 mean((ridge.pred-y.test)^2)
+```
 
+Next, I used cross-validation to choose the best tuning parameter. 
 
-
-# cross-validation to choose best tuning parameter
+```{r}
 set.seed(3142022)
 cv.out.ridge = cv.glmnet(x.train, y.train, alpha= 0)
 plot(cv.out.ridge)
@@ -345,24 +351,35 @@ abline(v=log(cv.out.ridge$lambda.min), col = "blue", lwd=3, lty=2)
 
 bestlam = cv.out.ridge$lambda.min
 bestlam
-
-ridge.pred=predict(ridge.mod, s = bestlam, newx=x.test)
-mean((ridge.pred-y.test)^2)
-
-out = glmnet(x,y,alpha=0)
-predict(out, type="coefficients", s=bestlam)
-# 
 ```
 
+Here is the mean squared error for best lambda.
+
 ```{r}
-# lasso
+ridge.pred=predict(ridge.mod, s = bestlam, newx=x.test)
+mean((ridge.pred-y.test)^2)
+```
+
+This prints out the coefficients of the best lambda. The glmnet function selects the minimum lambda and that lambda is used to predict the coefficients.
+
+```{r}
+out = glmnet(x,y,alpha=0)
+predict(out, type="coefficients", s=bestlam)
+```
+
+# lasso regression
+
+Next, I fit a lasso model using the glmnet function with alpha as 1 with 5 folds cross validation. I plotted the model to see if coefficients can be zero.
+```{r}
 set.seed(3142022)
 lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
-
 lasso.mod <- glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds = 5)
-
 plot(lasso.mod, xvar="lambda", label=TRUE)
+```
 
+In this step, I performed cross validation and computed test error. 
+
+```{r}
 cv.out.lasso = cv.glmnet(x.train,y.train,alpha=1)
 plot(cv.out.lasso)
 abline(v=log(cv.out.lasso$lambda.min), col="red", lwd=3, lty=2)
@@ -370,7 +387,11 @@ abline(v=log(cv.out.lasso$lambda.min), col="red", lwd=3, lty=2)
 bestlam2 = cv.out.lasso$lambda.min
 lasso.pred = predict(lasso.mod, s = bestlam2, newx = x.test)
 mean((lasso.pred-y.test)^2)
+```
 
+Like the ridge regression, I used this step to print out the coefficients of the best lambda. The glmnet function selects the minimum lambda and that lambda is used to predict the coefficients of the lasso model.
+
+```{r}
 out = glmnet(x, y, alpha=1, lambda=lambda.list.lasso)
 lasso.coef = predict(out, type="coefficients", s=bestlam)
 lasso.coef
@@ -509,70 +530,44 @@ From the graphs we can see that among all the trees in the random forest, PPG is
 
 ## PCA
 
+Next, I used PCA to find the most influential predictors in the model. I first created dataset called dat that includes all predictors and found their variances. Using Principle component Analysis, I found center(mean), scale (standard deviation), rotation (principle component loadings), and x(matrix of all principle component vectors)
+
 ```{r}
 dat <- our_data %>% select(-1)
 summary(dat)
-
-# check variance of each variable in our_data
 apply(dat, 2, var)
 
-# Principle component Analysis
 pr.out = prcomp(dat, scale = TRUE)
-# center is the mean and scale is the standard deviation
-pr.out$center
-pr.out$scale
-pr.out$rotation
-pr.out$x
+means <- pr.out$center
+sds <- pr.out$scale
+loads <- pr.out$rotation
+all <- pr.out$x
+```
 
-# plot 
+I plotted the first and second prinicple components to visualize the data. I then output the standard deviation and variance of of each prinicple component. Last, I found pve, the number of principle components needed.
+
+```{r}
 biplot(pr.out, scale = 0)
 
-# number of prinicipal components needed
 pr.out$sdev
 pr.var = pr.out$sdev^2
-pr.var
 pve = pr.var/sum(pr.var)
 pve
+```
 
-# plot 
+I plotted two graphs : the proportion of variance explained and the cumulative proportion of variance explained.
+
+```{r}
 plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
+```
 
+Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. 
+```{r}
 pr.out$rotation[,1]
-# we will consider the first two PCAs because they are the largest 2 values. 
 ```
 
 The first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Having greater PPG is the best "indicator" for variance explained in data.
-
-## Cluster
-
-```{r}
-scar  = scale(dat, center=TRUE, scale=TRUE)
-km = kmeans(scar, centers=2)
-km
-fviz_cluster(km, data= dat, gemo= "point", stand = FALSE, frame.type = "norm")
-
-
-# Dim 1 is more influential. cluster 2 is skewed right
-
-# centering the winner data so we can find out the loadings for the first two PCs
-
-# data_svd <- svd(scar)
-# data_loadings <- data_svd$v[,1:2]
-# data_pc <- as.matrix(scar) %*% data_loadings 
-# colnames(data_loadings) <- colnames(data_pc) <- paste('PC', 1:2, sep = '')
-# 
-# Player <- our_data$Player %>% factor()
-# 
-# data_pc %>%
-#   as.data.frame() %>%
-#   #bind_cols((dplyr:: select(data, state, county, candidate))) %>%
-#   ggplot(aes(x = PC1, y = PC2)) +
-#   geom_point(alpha = 0.5, aes(color = Player)) +
-#   theme_bw()
-
-
-```
 
 ## Function to predict
 
