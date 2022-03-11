@@ -204,30 +204,46 @@ Our linear regression, logistic regression, ridge and lasso, regression decision
 
 ## Linear regression
 
-Our first model is linear regression. There were a total of 3 fitted models. The first model consists of all 9 predictors. Based from the summary of that first fit, the second fit contains only predictors that were significant. Since the first and second fit were closely aligned, the third fit looked at the summary of the first fit and chose more signicant predictors than the second fit. At the end of each fit, I calculated MSE for that respective fit.
+Our first model is linear regression. There were a total of 3 fitted models. The first model consists of all 8 predictors. Based from the summary of that first fit, the second fit contains only predictors that were significant. Since the first and second fit were closely aligned, the third fit looked at the summary of the first fit and chose more signicant predictors than the second fit. 
 
 ```{r}
 fit1 <- lm(Salary ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
 summary(fit1)
+```
 
+Here is the respective training and testing mean squared error for fit1 (all predictors)
+```{r}
 train.predict1 <- predict(fit1, training)
 test.predict1 <- predict(fit1, testing)
 mean((train.predict1-training$Salary)^2)
 mean((test.predict1-testing$Salary)^2)
+```
 
-
+Here is the fit2 model, which takes predictors that are significant from fit1, as shown in the summary of fit1
+```{r}
 fit2 <- lm(Salary ~ PPG + APG + Value_Over_Replacement, data= training)
 summary(fit2)
+```
 
+Here is the training and testing mean squared error respectively for fit2
+
+```{r}
 train.predict2 <- predict(fit2, training)
 test.predict2 <- predict(fit2, testing)
 mean((train.predict2-training$Salary)^2)
 mean((test.predict2-testing$Salary)^2)
+```
 
+Here is the fit3 model, which takes predictors that are more significant than fit2 from the summary in fit1.
 
+```{r}
 fit3 <- lm(Salary ~ APG + Value_Over_Replacement, data= fit_data)
 summary(fit3)
+```
 
+Here is the training and testing mean squared error respectively for fit3
+
+```{r}
 train.predict3 <- predict(fit3, training)
 test.predict3 <- predict(fit3, testing)
 mean((train.predict3-training$Salary)^2)
@@ -291,10 +307,10 @@ auc
 
 ## Training, Testing for Ridge/ Lasso
 
-```{r}
-x <- model.matrix(Salary~., fit_data)
-y <- fit_data$Salary
+I chose to do ridge & lasso because it eliminates overfitting through regularization. 
+To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front means all predictors except the response variable (Salary). The y in front signifies the response (Salary)
 
+```{r}
 x.train <- as.matrix(training[,-1])
 y.train <- as.matrix(training$Salary)
 x.test <- as.matrix(testing[,-1])
@@ -303,16 +319,22 @@ y.test <- as.matrix(testing$Salary)
 
 ## Ridge / Lasso
 
+This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds on the training data to predict the coefficients of each predictor. This shows how much ... 
+
 ```{r}
-# ridge
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
 
 ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
 
 ridge.pred_1=predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", newx=x.test)
+```
 
+Then, I found the mean squared error for this ridge model.
+
+```{r}
 ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
 mean((ridge.pred-y.test)^2)
+
 
 
 # cross-validation to choose best tuning parameter
@@ -329,6 +351,7 @@ mean((ridge.pred-y.test)^2)
 
 out = glmnet(x,y,alpha=0)
 predict(out, type="coefficients", s=bestlam)
+# 
 ```
 
 ```{r}
@@ -353,6 +376,7 @@ lasso.coef = predict(out, type="coefficients", s=bestlam)
 lasso.coef
 
 ```
+
 
 ## Regression Decision Tree:
 
