@@ -150,9 +150,9 @@ reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336)
 Since there are still a lot of predictors (columns) left, we need a way to only show the important ones. The rest can be omitted. Thus, we used a correlation plot and found correlation coefficients as related to salary.
 
 ```{r}
-mfrow
+par(mar=c(0.75,3,3,0.75))
 my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
-corrplot(my_cor, method = "circle", type = "upper", cex.pch=10)
+corrplot(my_cor, method = "circle", type = "upper", cex.pch=10, tl.cex = 1)
 
 salarycor <- reduced_data %>% select(Salary, Games_Played:Value_Over_Replacement) %>% drop_na()
 corr_Salary <- cor(salarycor)[,"Salary"]
