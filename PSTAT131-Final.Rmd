@@ -3,6 +3,7 @@ title: "PSTAT131 Final Project"
 author: "Joseph Chang, Tom Wei, Akul Bajaj"
 date: "3/11/2022"
 output:
+  pdf_document: default
   html_document:
     code_folding: hide
 df_print: paged
@@ -362,7 +363,7 @@ tree_our_data=tree(Salary~. , data = our_data)
 summary(tree_our_data)
 ```
 
-Here we plot our decision tree using two different tree plotting functions, plot and draw tree. Both trees have 7 terminal nodes.
+Here we plot our decision tree using two different tree plotting functions, plot and draw tree. Both trees show the same idea and have 12 terminal nodes.
 
 ```{r}
 # plot the fitted tree
@@ -397,7 +398,6 @@ Now here we do a prediction on the test set using the predict() command. We spec
 ```{r}
 # Predict on test set
 tree.pred = predict(tree.nba, testing, type="vector")
-tree.pred
 
 # mean squared error
 y = mean((tree.pred-testing$Salary)^2)
@@ -440,25 +440,19 @@ plot(pt.cv)
 text(pt.cv, pretty=0, col = "blue", cex = .5)
 title("Pruned tree of size")
 ```
-
 ```{r}
-# Calculate the respective test error rate for the model
-
 # Predict on test set
 pred.pt.cv = predict(pt.cv, testing, type="vector")
 
-
- 
-# # examine misclassification errors on training set
-# print('training errors')
-# classes_test <- as.data.frame(testing) %>% pull(High)
-# train_errors_topt <- table(class = classes_test, pred = pred.pt.cv)
-# train_errors_topt/rowSums(train_errors_topt)
-
-# test error rate for pt.cv for pt.cv is 0.27907
-
-# The MSE is lower with 7 nodes (8047525). So best. ???
+# mean squared error
+w = mean((pred.pt.cv-testing$Salary)^2)
+w
+# root mean squared error
+g=sqrt(w)
+g
 ```
+The mean squared error is lower (8100514) than that of the non-pruned tree; the pruned tree with 9 terminal nodes is a better model.
+
 
 ## random forest
 
