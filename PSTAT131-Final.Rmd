@@ -3,9 +3,9 @@ title: "PSTAT131 Final Project"
 author: "Joseph Chang, Tom Wei, Akul Bajaj"
 date: "3/11/2022"
 output:
-  pdf_document: default
   html_document:
     code_folding: hide
+  pdf_document: default
 df_print: paged
 ---
 
@@ -206,7 +206,7 @@ Our linear regression, logistic regression, ridge and lasso, regression decision
 
 ## Linear regression
 
-Our first model is linear regression. There were a total of 3 fitted models. The first model consists of all 8 predictors. Based from the summary of that first fit, the second fit contains only predictors that were significant. Since the first and second fit were closely aligned, the third fit looked at the summary of the first fit and chose more signicant predictors than the second fit. 
+Our first model is linear regression. There were a total of 3 fitted models. The first model consists of all 8 predictors. Based from the summary of that first fit, the second fit contains only predictors that were significant. Since the first and second fit were closely aligned, the third fit looked at the summary of the first fit and chose more signicant predictors than the second fit.
 
 ```{r}
 fit1 <- lm(Salary ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
@@ -214,6 +214,7 @@ summary(fit1)
 ```
 
 Here is the respective training and testing mean squared error for fit1 (all predictors)
+
 ```{r}
 train.predict1 <- predict(fit1, training)
 test.predict1 <- predict(fit1, testing)
@@ -222,6 +223,7 @@ mean((test.predict1-testing$Salary)^2)
 ```
 
 Here is the fit2 model, which takes predictors that are significant from fit1, as shown in the summary of fit1
+
 ```{r}
 fit2 <- lm(Salary ~ PPG + APG + Value_Over_Replacement, data= training)
 summary(fit2)
@@ -309,8 +311,7 @@ auc
 
 ## Training, Testing for Ridge/ Lasso
 
-I chose to do ridge & lasso because it eliminates overfitting through regularization. 
-To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front means all predictors except the response variable (Salary). The y in front signifies the response (Salary)
+I chose to do ridge & lasso because it eliminates overfitting through regularization. To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front means all predictors except the response variable (Salary). The y in front signifies the response (Salary)
 
 ```{r}
 x <- model.matrix(Salary ~ ., data= fit_data)
@@ -323,8 +324,10 @@ y.test <- as.matrix(testing$Salary)
 ```
 
 ## Ridge / Lasso
+
 # Ridge regression
-This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor. This represents the distance of each predictor to the response. The lower the distance, the better. 
+
+This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor. This represents the distance of each predictor to the response. The lower the distance, the better.
 
 ```{r}
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
@@ -341,7 +344,7 @@ ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
 mean((ridge.pred-y.test)^2)
 ```
 
-Next, I used cross-validation to choose the best tuning parameter. 
+Next, I used cross-validation to choose the best tuning parameter.
 
 ```{r}
 set.seed(3142022)
@@ -370,6 +373,7 @@ predict(out, type="coefficients", s=bestlam)
 # lasso regression
 
 Next, I fit a lasso model using the glmnet function with alpha as 1 with 5 folds cross validation. I plotted the model to see if coefficients can be zero.
+
 ```{r}
 set.seed(3142022)
 lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
@@ -377,7 +381,7 @@ lasso.mod <- glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds 
 plot(lasso.mod, xvar="lambda", label=TRUE)
 ```
 
-In this step, I performed cross validation and computed test error. 
+In this step, I performed cross validation and computed test error.
 
 ```{r}
 cv.out.lasso = cv.glmnet(x.train,y.train,alpha=1)
@@ -397,7 +401,6 @@ lasso.coef = predict(out, type="coefficients", s=bestlam)
 lasso.coef
 
 ```
-
 
 ## Regression Decision Tree:
 
@@ -485,6 +488,7 @@ plot(pt.cv)
 text(pt.cv, pretty=0, col = "blue", cex = .5)
 title("Pruned tree of size")
 ```
+
 ```{r}
 # Predict on test set
 pred.pt.cv = predict(pt.cv, testing, type="vector")
@@ -496,8 +500,8 @@ w
 g=sqrt(w)
 g
 ```
-The mean squared error is lower (8100514) than that of the non-pruned tree; the pruned tree with 9 terminal nodes is a better model.
 
+The mean squared error is lower (8100514) than that of the non-pruned tree; the pruned tree with 9 terminal nodes is a better model.
 
 ## random forest
 
@@ -551,6 +555,7 @@ biplot(pr.out, scale = 0)
 
 pr.out$sdev
 pr.var = pr.out$sdev^2
+pr.var
 pve = pr.var/sum(pr.var)
 pve
 ```
@@ -562,7 +567,8 @@ plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
 ```
 
-Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. 
+Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values.
+
 ```{r}
 pr.out$rotation[,1]
 ```
