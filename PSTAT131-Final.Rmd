@@ -322,7 +322,6 @@ x.test <- as.matrix(testing[,-1])
 y.test <- as.matrix(testing$Salary)
 ```
 
-
 ## Ridge regression
 
 This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor. This represents the distance of each predictor to the response. The lower the distance, the better.
