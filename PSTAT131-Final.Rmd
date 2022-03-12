@@ -599,16 +599,16 @@ The first principal component explains 70% of the variance in data, the next pri
 # install.packages("nlme")
 # library(nlme)
 # 
-# salary_prediction <- function(m, PPG, APG){
-#   
-#   pre_new <- predict(m, c(PPG = points, APG = assists))
-#   
-#   msg <- paste("PPG:", points, ",APG", assists, " :Expected Salary: $", as.character(pre_new))
-#   print(msg)
-# }
-# 
-# model <- lm(Salary ~ PPG+APG, data = our_data)
-# salary_prediction(model, 16,3)
+salary_prediction <- function(m, points, assists){
+
+  pre_new <- predict(m, data.frame(PPG = points, APG = assists))
+
+  msg <- paste("PPG:", points, ",APG", assists, " :Expected Salary: $", as.character(pre_new))
+  print(msg)
+}
+
+model <- lm(Salary ~ PPG+APG, data = our_data)
+salary_prediction(m = model, points = 16, assists = 3)
 ```
 
 # Conclusion
