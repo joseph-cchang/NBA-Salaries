@@ -98,9 +98,10 @@ Free throws attempted: total number of free throws attempted.
 
 Offensive box plus minus: estimates a basketball player's offensive contribution to the team when that player is on the court.
 
-## Read data
+## Data Importation
 
-First, we read in the data that we downloaded. The first dataset is from a website called NBA stuffer, which contains many basketball statistics in an excel file. The second dataset is from kaggle and contains more basketball statistics, some different than the first dataset. The last dataset is from basketball-reference.com and lists out every players' salary in the 2021-2022 season.
+First, we read and import the data that we downloaded and collected. 
+The first dataset is an excel file from a website called NBA stuffer, which contains many commonly-used basketball statistics for every player in the 2020-2021 season. The second dataset is from kaggle and contains more basketball statistics than the first dataset. The last dataset is from basketball-reference.com and lists out every players' salary in the 2021-2022 season.
 
 ```{r}
 # NBA stuffer
@@ -119,9 +120,9 @@ labels2 <- c('Rank', 'Player', 'Salary', 'Use', 'Guaranteed')
 salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 ```
 
-## Merge data into "master" dataset
+## Merge data into unified dataset
 
-This is where we merge the three datasets into one "master" dataset. This "master" dataset removes duplicated columns as well as columns that show unrelated/insignificant statistics. In addition, this "master" dataset changes all columns (except Player and Salary) to dbl for more convenient use later on. Small remark: a new column called Total_Minutes was added to see if it has any effect on data.
+This is where we merge the three datasets while also removing duplicated columns and columns that show unrelated/insignificant statistics. In addition, this unified dataset changes all columns (except Player and Salary) to dbl form for more convenient use later on. Small remark: a new column called Total_Minutes was added to see if it has any effect on data.
 
 ```{r}
 combine <- inner_join(new_bball_stats, data_advanced, by = 'Player') %>% 
@@ -139,7 +140,7 @@ conversion3 <- conversion2 %>% relocate((Total_Minutes), .before=MPG)
 
 ## Filter data
 
-Next, we wanted to filter out players who did not see the court often or were injured during the season. Keeping such players otherwise would have skewed the data and produced outliers. Here, players with total minutes less than 336 minutes and less than 7 agmes were taken out. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
+Next, we wanted to filter out players who did not see the court often or were injured during the season. Keeping such players would skew the data and produce unnecessary outliers. Here, players with total minutes less than 336 minutes and less than 7 agmes were removed. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
 
 ```{r}
 reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336) %>% select(Player:Salary) %>% drop_na()
@@ -159,17 +160,18 @@ corr_Salary <- cor(salarycor)[,"Salary"]
 corr_Salary[which(corr_Salary > 0.6)]
 ```
 
-Based from the correlation, we will filter those correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement.
+Based from the correlation, we will filter to only keep correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, and Value_Over_Replacement.
 
 ## Final dataset and Histograms
 
-This is where we put the final dataset. It has our players, their salaries, and the 8 predictors we want. We will be referring to our_data the rest of the project. As a start to visualize the data, we plotted the response variable Salary using a histogram and the scatter plots of Salary vs. the 8 predictors which has the greatest correlation with salary.
+Our final dataset will be called our_data, and we will be using it the rest of the project. It has our players, their salaries, and the 8 predictors we want. To visualize this data, we used a histogram to plot Salary as well as scatter plots of Salary vs the 8 predictors.
 
 ```{r}
 our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement)
 
-hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges", labels = TRUE)
+hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount", breaks = "Sturges", labels = TRUE)
 
+op=par(mfrow=c(2,2))
 plot(our_data$Salary, our_data$PPG, main="Scatterplot of Salary vs. PPG",
    xlab="Salary", ylab="PPG", pch=19)
 plot(our_data$Salary, our_data$APG, main="Scatterplot of Salary vs. APG",
@@ -180,7 +182,7 @@ plot(our_data$Salary, our_data$TPG, main="Scatterplot of Salary vs. TPG",
    xlab="Salary", ylab="TPG", pch=19)
 plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot of Salary vs. Minutes Percent", xlab="Salary", ylab="Minutes Percent", pch=19)
 
-plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws   Attempted", xlab="Salary", ylab="Free Throws Attempted", pch=19)
+plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws Attempted", xlab="Salary", ylab="Free Throws Attempted", pch=19)
 
 plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus", xlab="Salary", ylab="Offensive Box Plus Minus", pch=19)
 
@@ -189,10 +191,10 @@ plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Sala
 
 ## Training and Testing data
 
-In our models we need testing and training datas. Training data will be 80% and testing will be 20%. Here we define them and will proceed with these in mind.
+In our models we need testing and training sets. To split, the training data will be 80% of the data and testing will be 20%. Here we define them and will proceed with these in mind.
 
 ```{r}
-set.seed(3112022)
+set.seed(3152022)
 fit_data <- our_data[-1] 
 new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
 training <- as.data.frame(new_data$train)
@@ -201,11 +203,11 @@ testing <- as.data.frame(new_data$test)
 
 ## Exploratory Data Analysis
 
-Our linear regression, logistic regression, ridge and lasso, regression decision tree, and random forest use the same training dataset, which contains 309 observations; and the same testing dataset, which contains 77 observations, 386 players in total.
+Our linear regression, logistic regression, ridge and lasso, regression decision tree, and random forest use the same training dataset, which contains 309 observations. The testing dataset contains 77 observations, for a total of 386 players.
 
 ## Linear regression
 
-Our first model is linear regression. There were a total of 3 fitted models. The first model consists of all 8 predictors. Based from the summary of that first fit, the second fit contains only predictors that were significant. Since the first and second fit were closely aligned, the third fit looked at the summary of the first fit and chose more signicant predictors than the second fit.
+Our first model to test is linear regression. There were a total of 3 fitted models. The first model consists of all 8 predictors. The second fit contains predictors that summary of the first fit found significant. The third fit consists from predictors that the second fit found significant. 
 
 ```{r}
 fit1 <- lm(Salary ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
@@ -221,10 +223,10 @@ mean((train.predict1-training$Salary)^2)
 mean((test.predict1-testing$Salary)^2)
 ```
 
-Here is the fit2 model, which takes predictors that are significant from fit1, as shown in the summary of fit1
+Here is the fit2 model and summary, which takes predictors that were significant from fit1.
 
 ```{r}
-fit2 <- lm(Salary ~ PPG + APG + Value_Over_Replacement, data= training)
+fit2 <- lm(Salary ~ PPG + APG + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data= training)
 summary(fit2)
 ```
 
@@ -237,10 +239,10 @@ mean((train.predict2-training$Salary)^2)
 mean((test.predict2-testing$Salary)^2)
 ```
 
-Here is the fit3 model, which takes predictors that are more significant than fit2 from the summary in fit1.
+Here is the fit3 model and summary, which takes predictors that were significant from fit2.
 
 ```{r}
-fit3 <- lm(Salary ~ APG + Value_Over_Replacement, data= fit_data)
+fit3 <- lm(Salary ~ PPG + APG + Value_Over_Replacement, data= training)
 summary(fit3)
 ```
 
@@ -253,7 +255,7 @@ mean((train.predict3-training$Salary)^2)
 mean((test.predict3-testing$Salary)^2)
 ```
 
-Based from the 3 fitted models, I chose the model with the least MSE for training and testing. The first model had the least MSE for both training and testing so I will use fit1. This makes sense as the largest R-squared was fit1.
+Based from the 3 fitted models, the largest R-squared came from fit1 at around 0.65. Next, I chose the model with the least MSE for training and testing. fit1 had the least MSE for training, but fit3 had the least MSE for testing. To break the tie, I will consider the R-squared again, meaning fit1 is most appropriate. 
 
 ## Logistic regression
 
@@ -263,7 +265,7 @@ First, we will calculate the average salary of all players, and create the new b
 
 ```{r}
 mean_train_salary <- mean(training$Salary)
-training_salarymean<- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
+training_salarymean <- training %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
 ```
 
 Next, we will fit a logistic regression on the "salarygreater" in the training dataset. After that, we will predict based on the "majority rule": if the predicted probability is greater than 0.5, classify the observation as 1, otherwise, classify it as 0.
@@ -310,7 +312,7 @@ auc
 
 ## Training, Testing for Ridge/ Lasso
 
-I chose to do ridge & lasso because it eliminates overfitting through regularization. To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front means all predictors except the response variable (Salary). The y in front signifies the response (Salary)
+We chose to do ridge & lasso because it eliminates overfitting through regularization. To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front of the training and testing means all predictors except the response variable (Salary). The y in front signifies the response (Salary)
 
 ```{r}
 x <- model.matrix(Salary ~ ., data= fit_data)
