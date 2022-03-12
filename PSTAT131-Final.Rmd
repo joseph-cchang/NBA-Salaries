@@ -46,11 +46,11 @@ library(randomForest)
 
 # Introduction
 
-After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes, live sports! From October to May we watch basketball stars like Lebron James dropping dimes, or Stephen Curry splashing from threes, but what factors lead these players to such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can actually range from \$377,645 all the way to \$45,780,966. In our project we use statistical variables such as "PPG", or "Offensive Rating" in different statistical machine learning models to predict the salaries of NBA players in the 2021-2022 season.
+After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes, live sports! From October to May we watch basketball stars like Lebron James dropping dimes, or Stephen Curry splashing from threes, but what factors lead these players to such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can actually range from 377,645 all the way to 45,780,966 USD. In our project we use statistical variables such as "PPG", or "Offensive Rating" in different statistical machine learning models to predict the salaries of NBA players in the 2021-2022 season.
 
 We apply several statistical machine learning models like logistic regression and clustering to the data in order to predict the salary of a player based on eight main predictors, carefully selected after several correlation calculations and observations. We plan to explore the benefits and detriments of each model, by calculating statistics such as mean squared error, area under the curve, etc. We hope you enjoy!
 
-Some of players maybe repeated because he got traded during the season.
+Some of players may be repeated because he was traded mid-season.
 
 Before we dive into the data, the definitions of the variables should be clarified first. All the variables contained in our datasets will be listed below.
 
@@ -170,7 +170,6 @@ our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Min
 
 hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges", labels = TRUE)
 
-
 plot(our_data$Salary, our_data$PPG, main="Scatterplot of Salary vs. PPG",
    xlab="Salary", ylab="PPG", pch=19)
 plot(our_data$Salary, our_data$APG, main="Scatterplot of Salary vs. APG",
@@ -179,14 +178,13 @@ plot(our_data$Salary, our_data$MPG, main="Scatterplot of Salary vs. MPG",
    xlab="Salary", ylab="MPG", pch=19)
 plot(our_data$Salary, our_data$TPG, main="Scatterplot of Salary vs. TPG",
    xlab="Salary", ylab="TPG", pch=19)
-plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot of Salary vs. Minutes Percent",
-   xlab="Salary", ylab="Minutes Percent", pch=19)
-plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws   Attempted",
-   xlab="Salary", ylab="Free Throws Attempted", pch=19)
-plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus",
-   xlab="Salary", ylab="Offensive Box Plus Minus", pch=19)
-plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Salary vs. Value Over Replacement",
-   xlab="Salary", ylab="Value Over Replacement", pch=19)
+plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot of Salary vs. Minutes Percent", xlab="Salary", ylab="Minutes Percent", pch=19)
+
+plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws   Attempted", xlab="Salary", ylab="Free Throws Attempted", pch=19)
+
+plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus", xlab="Salary", ylab="Offensive Box Plus Minus", pch=19)
+
+plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Salary vs. Value Over Replacement", xlab="Salary", ylab="Value Over Replacement", pch=19)
 ```
 
 ## Training and Testing data
