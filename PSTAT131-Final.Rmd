@@ -170,6 +170,7 @@ our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Min
 
 hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount",breaks = "Sturges", labels = TRUE)
 
+
 plot(our_data$Salary, our_data$PPG, main="Scatterplot of Salary vs. PPG",
    xlab="Salary", ylab="PPG", pch=19)
 plot(our_data$Salary, our_data$APG, main="Scatterplot of Salary vs. APG",
@@ -323,9 +324,8 @@ x.test <- as.matrix(testing[,-1])
 y.test <- as.matrix(testing$Salary)
 ```
 
-## Ridge / Lasso
 
-# Ridge regression
+## Ridge regression
 
 This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor. This represents the distance of each predictor to the response. The lower the distance, the better.
 
@@ -370,7 +370,7 @@ out = glmnet(x,y,alpha=0)
 predict(out, type="coefficients", s=bestlam)
 ```
 
-# lasso regression
+## Lasso regression
 
 Next, I fit a lasso model using the glmnet function with alpha as 1 with 5 folds cross validation. I plotted the model to see if coefficients can be zero.
 
@@ -578,37 +578,22 @@ The first principal component explains 70% of the variance in data, the next pri
 ## Function to predict
 
 ```{r}
-# salary_prediction <- function(m, PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement){
-#   
-#   pre_new <- predict(m, data.frame(PPG = points, APG = assists, MPG = minutes, TPG = turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
-#   
-#   msg <- paste("PPG:", points, ",APG:", assists, ",MPG:", minutes, ",TPG:", turnovers, ",Minutes_percent:", minutes_p, ",free_throws_attempted:", free_throws, ",Offensive_Box_Plus_Minus:", offense_plus_minus, ",Value_Over_Replacement", value ," ==> Expected Salary: $", format(round(pre_new), big.mark = ","), sep = "")
-#   
-#   print(msg)
-# }
-# 
-# 
-# model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = our_data)
-# salary_prediction(model, 16, APG = 4, 30, 3, 75, 400, 4.5, 3)
-
 
 # user.name <- readline(prompt = "Please type your name ")
 #   print(paste("Users name is", user.name))
-#   
-# 
-# install.packages("nlme")
-# library(nlme)
-# 
-salary_prediction <- function(m, points, assists){
 
-  pre_new <- predict(m, data.frame(PPG = points, APG = assists))
+salary_prediction <- function(m, points, assists, minutes, turnovers, minutes_p, free_throws, offense_plus_minus, value){
 
-  msg <- paste("PPG:", points, ",APG", assists, " :Expected Salary: $", as.character(pre_new))
+  pre_new <- predict(m, data.frame(PPG = points, APG = assists, MPG= minutes, TPG =  turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
+
+  msg <- paste("PPG:", points, ",APG:", assists, ",MPG:", minutes, ",TPG:", turnovers, ",Minutes_percent:", minutes_p, ",free_throws_attempted:", free_throws, ",Offensive_Box_Plus_Minus:", offense_plus_minus, ",Value_Over_Replacement", value ," ==> Expected Salary: $", format(round(pre_new), big.mark = ","), sep = "")
+  
   print(msg)
 }
 
-model <- lm(Salary ~ PPG+APG, data = our_data)
-salary_prediction(m = model, points = 16, assists = 3)
+model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = our_data)
+
+salary_prediction(m = model, points = 20, assists = 5, minutes = 30, turnovers = 2, minutes_p = 60, free_throws = 80, offense_plus_minus = 2.3, value = 1.3)
 ```
 
 # Conclusion
