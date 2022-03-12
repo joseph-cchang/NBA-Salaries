@@ -524,7 +524,7 @@ test.rf.err = 1 - sum(diag(rf.err))/sum(rf.err)
 test.rf.err
 ```
 
-The test set error rate is 0.1818.
+The test set error rate is shown above.
 
 Then we will get a plot with decreasing order of importance based on Model Accuracy and Gini value.
 
