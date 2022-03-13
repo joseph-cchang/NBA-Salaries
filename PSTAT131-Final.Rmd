@@ -1,7 +1,7 @@
 ---
 title: "PSTAT131 Final Project"
 author: "Joseph Chang, Tom Wei, Akul Bajaj"
-date: "3/11/2022"
+date: "March 15, 2022"
 output:
   html_document:
     code_folding: hide
@@ -14,10 +14,6 @@ df_print: paged
 knitr::opts_chunk$set(fig.width=7, fig.height=5, echo =TRUE, message=FALSE, warning = FALSE)
 options(digits = 4)
 ```
-
-## Packages
-
-Here we installed necessary packages
 
 ```{r}
 #install.packages("tidyverse")
@@ -121,8 +117,6 @@ salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 
 # Data Cleaning
 
-## Merge data into unified dataset
-
 This is where we merge the three datasets while also removing duplicated columns and columns that show unrelated/insignificant statistics. In addition, this unified dataset changes all columns (except Player and Salary) to dbl form for more convenient use later on. Small remark: a new column called Total_Minutes was added to see if it has any effect on data.
 
 ```{r}
@@ -152,7 +146,7 @@ reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336)
 Since there are still a lot of predictors (columns) left, we need a way to only show the important ones. The rest can be omitted. Thus, we used a correlation plot and found correlation coefficients as related to salary.
 
 ```{r}
-par(mar=c(0.75,3,3,0.75))
+par(mar=c(5,5,5,5))
 my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
 corrplot(my_cor, method = "circle", type = "upper", cex.pch=10, tl.cex = 1)
 
@@ -192,7 +186,7 @@ plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main="Scatterplot of Sa
 plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Salary vs. Value Over Replacement", xlab="Salary", ylab="Value Over Replacement", pch=19)
 ```
 
-## Data splitting
+# Data splitting
 
 In our models we need testing and training sets. To split, the training data will be 80% of the data and testing will be 20%. Here we define them and will proceed with these in mind.
 
@@ -204,9 +198,11 @@ training <- as.data.frame(new_data$train)
 testing <- as.data.frame(new_data$test)
 ```
 
-## Exploratory Data Analysis
+# Exploratory Data Analysis
 
 Our linear regression, logistic regression, ridge and lasso, regression decision tree, and random forest use the same training dataset, which contains 309 observations. The testing dataset contains 77 observations, for a total of 386 players.
+
+# Model Building
 
 ## Linear regression
 
@@ -315,7 +311,7 @@ auc
 
 From the result of the error rate and the AUC curve, we can conclude that the eight variables we choose above are good predictors of  the "salarygreater" variables. Hence, we may continue our analysis of the variables in the later project later by using different methods.
 
-# Ridge and Lasso
+## Ridge and Lasso
 
 #### Training, Testing for Ridge/ Lasso
 
@@ -587,7 +583,7 @@ pr.out$rotation[,1:2]
 
 Based from the principal component loadings, the highest value in the first principal component is PPG, while the least is Value_over_Replacement. In the second PC, the highest is Offensive_Box_Plus_Minus and lowest is APG.
 
-## Function to predict
+# Final Model Building
 
 This is the final step: predicting a player's salary. We will go through the models and look for the best model to fit by finding lowest MSE. We determined that in the linear regression, both testing and training MSE were lower than the rest of the models. In order to determine which fit to use, we chose fit1 because it has the lowest training MSE and highest R-squared.
 

@@ -1243,8 +1243,7 @@ cumulative proportion of variance explained.</p>
 <p>Based from the plot, the elbow point shows point 2, meaning I should
 consider the first two PCA because they are the largest 2 values.
 Therefore, the first principal component explains 70% of the variance in
-data, the next principal component explains 10.48%. Having greater PPG
-is the best “indicator” for variance explained in data.</p>
+data, the next principal component explains 10.48%.</p>
 <pre class="r"><code>pr.out$rotation[,1:2]</code></pre>
 <pre><code>##                             PC1      PC2
 ## Salary                   0.3297  0.07202
@@ -1303,6 +1302,353 @@ salary is $2,089,448.</p>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
+<p>After merging and filtering our dataset, we find out that the 8
+variables which have the highest correlation with the players’ salary
+are Points per game, Assists per game, minutes per game, turnovers per
+game, minutes percent, free-throws-attempted, offensive-box-plus-minus,
+and value_over_replacement. The result makes sense for us because it
+shows that the amount of time players spend on the court is highly
+correlated with their salary. However, we also find it interesting that
+the players’ salary is weighted more towards their offensive statistics
+such as points per game and assists per game rather than their defensive
+statistics such as rebounds per game, steals per game, and blocks per
+game. In the sport of basketball, if a player can produce more on the
+offensive side, he will earn more money. </p>
+<p>After that, we started our analysis on NBA players’ salary by
+plotting the histograms and the scatter plot of salary with the 8
+variables listed above to have a first glance of the relationship
+between salary and the 8 variables we will analyze later in the project.
+Having some acknowledgement of our dataset, we reach an exploratory data
+analysis and split our data into a training dataset and testing
+dataset.</p>
+<p>Next, we start to fit our data into different models: linear
+regression model, logistics regression model, Ridge / Lasso regression
+model, regression decision tree, random forest, and PCA. </p>
+<p>Here is a list of conclusions we developed from each model: </p>
+<p><u>Linear regression:</u> There were 3 fitted models. The first fit
+showed all predictors vs Salary, the second showed significant
+predictors from the first, and the third showed significant predictors
+from the second. We concluded that the largest R-squared came from fit1
+at around 0.65. The fit1 also had the least training MSE at 3.409e+13,
+but fit3 had the least testing MSE at 7.304e+13.</p>
+<p><u>Logistic regression:</u> Since all the eight variables we use are
+numeric variables, we create a new binary predictor called
+“Salarygreater”. After we get the error rate of about 0.2 for both
+training and testing dataset, and the AUC of about 0.8226, we conclude
+that the eight variables we choose are good predictors of  the
+“Salarygreater” variables. </p>
+<p><u>Ridge regression:</u> We originally tested the lambda value on
+5-folds cross validation, but found using the best tuning parameter was
+better at predicting coefficients because testing MSE for best lambda at
+7.172e+13 is less than the testing MSE for the 5-folds CV at 7.175e+13.
+We determined coefficients for free_throws_attempted was the least at
+9350 and Value_Over_Replacement was highest at 3025371. These numbers
+represent the distance of each predictor to the response variable of
+Salary. <br />
+</p>
+<p><u>Lasso regression:</u> The least coefficient for lasso was
+turnovers_per_game at -882401 and the greatest was
+Value_Over_Replacement at 3852047. The MSE of testing is around
+7.171e+13, which is lower than the one given in the ridge
+regression.</p>
+<p><u>Random Forest:</u> we fit the random forest model again to the
+“Salarygreater” to get a error rate of about 0.2. In addition, according
+to the  Model Accuracy and Gini index, we find out that PPG is the most
+important variable, which corresponds to our finding in the linear
+regression method.</p>
+<p><u>Regression Decision Tree:</u> </p>
+<p><br />
+</p>
+<p><u>PCA:</u> After plotting the Proportion of Variance Explained and
+its cumulative values, we determined that the elbow point showed point
+2, meaning we should consider the first two PCAs. Therefore, the first
+principal component explains 70% of the variance in data, the next
+principal component explains 10.48%. Based on the principal component
+loadings, the highest value in the first principal component is PPG at
+0.3759, while the least is Value_over_Replacement at 0.3053. In the
+second PC, the highest is Offensive_Box_Plus_Minus at around 0.55 and
+lowest is APG at -0.32. These numbers show how much variance can be
+explained by the predictor.</p>
+<p>The final step of this project is to predict the players’ salary. As
+an example, we took Danny Green and Nemanja Bjelica’s statistics to
+predict their salary. We can conclude that our model is somewhat
+accurate, as our predicted values differ from the actual by around only
+1-2 million dollars. Overall, we can conclude that our model is only 65%
+accurate and still can be used to predict the majority of players’
+salaries correctly. </p>
+<p><br />
+We would like to acknowledge Katie Coburn for her contributions and
+assistance with this project and taking the time, effort, and energy out
+of her busy schedules to help us. Additionally, we would like to thank
+Michael La, Maria Gao, Vicky Cui, and Lihao Xiao.</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<p>We used these sites to find our data: <a href="https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba2021_advanced.csv" class="uri">https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba2021_advanced.csv</a></p>
+<p><a href="https://www.nbastuffer.com/2020-2021-nba-player-stats/" class="uri">https://www.nbastuffer.com/2020-2021-nba-player-stats/</a></p>
+<p><a href="https://www.basketball-reference.com/contracts/players.html" class="uri">https://www.basketball-reference.com/contracts/players.html</a></p>
+</div>
+<div id="appendix" class="section level1">
+<h1>Appendix</h1>
+<pre class="r"><code>#install.packages(&quot;tidyverse&quot;)
+library(ggplot2)                     
+library(GGally)
+library(tidyverse)
+library(glmnet)
+library(knitr)
+library(dplyr)
+library(tidyverse)
+library(modelr)
+library(pander)
+library(corrplot)
+library(readxl)
+library(ISLR)
+library(tidymodels)
+library(ggthemes)
+library(naniar)
+library(ROCR)
+library(maptree)
+library(tree)
+library(factoextra)
+library(cluster)
+library(randomForest)
+# NBA stuffer
+X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics &lt;- read_excel(&quot;2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx&quot;)
+bball_stats &lt;- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
+my_colnames &lt;- c(&#39;Rank&#39;, &#39;Player&#39;, &#39;Team&#39;, &#39;Position&#39;, &#39;Age&#39;, &#39;Games_Played&#39;, &#39;MPG&#39;, &#39;Minutes_percent&#39;, &#39;Usage_Rate&#39; , &#39;Turnover_rate&#39;, &#39;free_throws_attempted&#39;, &#39;Free_throw_percent&#39;, &#39;2-point_field goals_attempted&#39;, &#39;2-point_percent&#39;, &#39;3-point_field_goals_attempted&#39;, &#39;three_point_percent&#39;, &#39;effective_shooting_percent&#39; , &#39;True_shooting_percent&#39;, &#39;PPG&#39;, &#39;RPG&#39;, &#39;Total_rebound_percent&#39;, &#39;APG&#39;, &#39;Assist_percent&#39;, &#39;SPG&#39; ,&#39;BPG&#39;, &#39;TPG&#39;, &#39;Versatility_Index&#39;, &#39;Offensive_Rating&#39; , &#39;Defensive_Rating&#39;)
+colnames(bball_stats) &lt;- my_colnames
+new_bball_stats &lt;- bball_stats[-1,-1]
+
+# kaggle
+labels &lt;- c(&#39;Player&#39;,&#39;Position&#39;, &#39;Age&#39;, &#39;Team&#39;, &#39;Games&#39;, &#39;Minutes_played&#39;, &#39;Player_Efficiency_Rating&#39;, &#39;true_shooting_percent&#39;, &#39;3-point_attempt_rate&#39;, &#39;free-throw_attempt_rate&#39;, &#39;offensive_rebound_ percentage&#39;, &#39;defensive_rebound_percentage&#39;, &#39;total_rebound_percentage&#39;, &#39;assist_percentage&#39;, &#39;steal_percentage&#39;, &#39;block_percentage&#39;, &#39;turnover_percentage&#39;, &#39;usage_rate&#39;, &#39;offensive_win_shares&#39;, &#39;defensive_win_shares&#39;, &#39;win_shares&#39;,&#39;win_shares_per_48_minutes&#39;, &#39;Offensive_Box_Plus_Minus&#39;, &#39;Defensive_Box_Plus_Minus&#39;,&#39;Box_Plus_Minus&#39;,&#39;Value_Over_Replacement&#39;)
+data_advanced &lt;- read.csv(&quot;nba2021_advanced.csv&quot;, col.names = labels, na= &quot;XXX&quot;)
+
+# basektball-reference salaries
+labels2 &lt;- c(&#39;Rank&#39;, &#39;Player&#39;, &#39;Salary&#39;, &#39;Use&#39;, &#39;Guaranteed&#39;)
+salaries &lt;- read.csv(&quot;nba_salaries_21-22.csv&quot;, col.names = labels2)
+combine &lt;- inner_join(new_bball_stats, data_advanced, by = &#39;Player&#39;) %&gt;% 
+  inner_join(salaries, by = &#39;Player&#39;)
+  
+selection &lt;- subset(combine, select= -c(2:4,29:33,35:45,54,56:57)) 
+less_data &lt;- selection %&gt;% relocate(c(PPG,RPG,APG,SPG,BPG,TPG), .before = MPG)
+
+conversion &lt;- less_data[,2:35] %&gt;% mutate_if(is.character,as.numeric) %&gt;% mutate(Total_Minutes = Games_Played*MPG)
+conversion1 &lt;- conversion %&gt;% add_column(less_data$Player) 
+names(conversion1)[names(conversion1) == &quot;less_data$Player&quot;] &lt;- &quot;Player&quot;
+conversion2 &lt;- conversion1 %&gt;% relocate((Player), .before = Games_Played)
+conversion3 &lt;- conversion2 %&gt;% relocate((Total_Minutes), .before=MPG)
+reduced_data &lt;- conversion3 %&gt;% filter(Games_Played &gt;= 7 &amp; Total_Minutes &gt;= 336) %&gt;% select(Player:Salary) %&gt;% drop_na()
+par(mar=c(0.75,3,3,0.75))
+my_cor &lt;- reduced_data %&gt;% select_if(is.numeric) %&gt;% drop_na() %&gt;% cor() %&gt;% round(3) 
+corrplot(my_cor, method = &quot;circle&quot;, type = &quot;upper&quot;, cex.pch=10, tl.cex = 1)
+
+salarycor &lt;- reduced_data %&gt;% select(Salary, Games_Played:Value_Over_Replacement) %&gt;% drop_na()
+corr_Salary &lt;- cor(salarycor)[,&quot;Salary&quot;]
+corr_Salary[which(corr_Salary &gt; 0.6)]
+our_data &lt;- reduced_data %&gt;% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement)
+
+hist(our_data$Salary, main = &quot;Histogram of NBA salaries 2021-2022&quot;, xlab=&quot;Salary Amount&quot;, breaks = &quot;Sturges&quot;, labels = TRUE)
+
+op=par(mfrow=c(2,2))
+plot(our_data$Salary, our_data$PPG, main=&quot;Scatterplot of Salary vs. PPG&quot;,
+   xlab=&quot;Salary&quot;, ylab=&quot;PPG&quot;, pch=19)
+plot(our_data$Salary, our_data$APG, main=&quot;Scatterplot of Salary vs. APG&quot;,
+   xlab=&quot;Salary&quot;, ylab=&quot;APG&quot;, pch=19)
+plot(our_data$Salary, our_data$MPG, main=&quot;Scatterplot of Salary vs. MPG&quot;,
+   xlab=&quot;Salary&quot;, ylab=&quot;MPG&quot;, pch=19)
+plot(our_data$Salary, our_data$TPG, main=&quot;Scatterplot of Salary vs. TPG&quot;,
+   xlab=&quot;Salary&quot;, ylab=&quot;TPG&quot;, pch=19)
+plot(our_data$Salary, our_data$Minutes_percent, main=&quot;Scatterplot of Salary vs. Minutes Percent&quot;, xlab=&quot;Salary&quot;, ylab=&quot;Minutes Percent&quot;, pch=19)
+
+plot(our_data$Salary, our_data$free_throws_attempted, main=&quot;Scatterplot of Salary vs. Free Throws Attempted&quot;, xlab=&quot;Salary&quot;, ylab=&quot;Free Throws Attempted&quot;, pch=19)
+
+plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main=&quot;Scatterplot of Salary vs. Offensive Box Plus Minus&quot;, xlab=&quot;Salary&quot;, ylab=&quot;Offensive Box Plus Minus&quot;, pch=19)
+
+plot(our_data$Salary, our_data$Value_Over_Replacement, main=&quot;Scatterplot of Salary vs. Value Over Replacement&quot;, xlab=&quot;Salary&quot;, ylab=&quot;Value Over Replacement&quot;, pch=19)
+set.seed(3152022)
+fit_data &lt;- our_data[-1] 
+new_data &lt;- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
+training &lt;- as.data.frame(new_data$train)
+testing &lt;- as.data.frame(new_data$test)
+fit1 &lt;- lm(Salary ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
+summary(fit1)
+train.predict1 &lt;- predict(fit1, training)
+test.predict1 &lt;- predict(fit1, testing)
+mean((train.predict1-training$Salary)^2)
+mean((test.predict1-testing$Salary)^2)
+fit2 &lt;- lm(Salary ~ PPG + APG + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data= training)
+summary(fit2)
+train.predict2 &lt;- predict(fit2, training)
+test.predict2 &lt;- predict(fit2, testing)
+mean((train.predict2-training$Salary)^2)
+mean((test.predict2-testing$Salary)^2)
+fit3 &lt;- lm(Salary ~ PPG + APG + Value_Over_Replacement, data= training)
+summary(fit3)
+train.predict3 &lt;- predict(fit3, training)
+test.predict3 &lt;- predict(fit3, testing)
+mean((train.predict3-training$Salary)^2)
+mean((test.predict3-testing$Salary)^2)
+mean_train_salary &lt;- mean(training$Salary)
+training_salarymean &lt;- training %&gt;% mutate(salarygreater=factor(ifelse(Salary &gt;= mean_train_salary, 1, 0), levels=c(0, 1)))
+training_logit &lt;- glm(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, family = &#39;binomial&#39;)
+
+salarymean_pred_training &lt;- predict(training_logit, training_salarymean, type=&quot;response&quot;)
+train_maj_rule &lt;- ifelse(salarymean_pred_training &gt; 0.5, 1,0)
+calc_error_rate &lt;- function(predicted.value, true.value){
+  return(mean(true.value!=predicted.value))}
+calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
+testing_salarymean&lt;- testing %&gt;% mutate(salarygreater=factor(ifelse(Salary &gt;= mean_train_salary, 1, 0), levels=c(0, 1)))
+salarymean_pred_testing &lt;- predict(training_logit,  testing_salarymean, type=&quot;response&quot;)
+test_maj_rule2 &lt;- ifelse(salarymean_pred_testing &gt; 0.5, 1,0)
+calc_error_rate(test_maj_rule2, testing_salarymean$salarygreater)
+pred &lt;- prediction(salarymean_pred_testing, testing_salarymean$salarygreater)
+perf &lt;- performance(pred, measure = &quot;tpr&quot;, x.measure = &quot;fpr&quot;)
+plot(perf, col = 2, lwd = 3, main = &quot;ROC curve&quot;)
+abline(0, 1)
+auc &lt;- performance(pred, &quot;auc&quot;)@y.values[[1]]
+auc
+x &lt;- model.matrix(Salary ~ ., data= fit_data)
+y &lt;- fit_data$Salary
+
+x.train &lt;- as.matrix(training[,-1])
+y.train &lt;- as.matrix(training$Salary)
+x.test &lt;- as.matrix(testing[,-1])
+y.test &lt;- as.matrix(testing$Salary)
+lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
+
+ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
+
+ridge.pred_1 = predict(ridge.mod, s = ridge.mod$lambda.min, type=&quot;coefficients&quot;, newx=x.test)
+ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
+mean((ridge.pred-y.test)^2)
+set.seed(3152022)
+cv.out.ridge = cv.glmnet(x.train, y.train, alpha= 0)
+plot(cv.out.ridge)
+abline(v=log(cv.out.ridge$lambda.min), col = &quot;blue&quot;, lwd=3, lty=2)
+
+bestlam = cv.out.ridge$lambda.min
+ridge.pred=predict(ridge.mod, s = bestlam, newx=x.test)
+mean((ridge.pred-y.test)^2)
+out = glmnet(x,y,alpha=0)
+predict(out, type=&quot;coefficients&quot;, s=bestlam)
+set.seed(3152022)
+lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
+lasso.mod &lt;- glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds = 5)
+plot(lasso.mod, xvar=&quot;lambda&quot;, label=TRUE)
+cv.out.lasso = cv.glmnet(x.train,y.train,alpha=1)
+plot(cv.out.lasso)
+abline(v=log(cv.out.lasso$lambda.min), col=&quot;red&quot;, lwd=3, lty=2)
+
+bestlam2 = cv.out.lasso$lambda.min
+lasso.pred = predict(lasso.mod, s = bestlam2, newx = x.test)
+mean((lasso.pred-y.test)^2)
+out = glmnet(x, y, alpha=1, lambda=lambda.list.lasso)
+lasso.coef = predict(out, type=&quot;coefficients&quot;, s=bestlam)
+lasso.coef
+tree_our_data=tree(Salary~. , data = our_data) 
+summary(tree_our_data)
+# plot the fitted tree
+plot(tree_our_data)
+text(tree_our_data, pretty = 0, cex = .4, col = &quot;blue&quot;)
+title(&quot;Decision tree on our_data&quot;, cex = 0.8)
+draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
+# Fit model on training set
+tree.nba = tree(Salary~. , data = training)
+ 
+# Plot the tree
+draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
+title(&quot;Regression Tree Built on Training Set&quot;)
+summary(tree.nba)
+# Predict on test set
+tree.pred = predict(tree.nba, testing, type=&quot;vector&quot;)
+
+# mean squared error
+y = mean((tree.pred-testing$Salary)^2)
+y
+# root mean squared error
+z=sqrt(y)
+z
+set.seed(3152022)
+
+#K=10-Fold cross validation
+cv = cv.tree(tree.nba, K=10)
+
+# the tree with smaller size
+best.cv = min(cv$size[cv$dev == min(cv$dev)])
+best.cv
+
+# Plot size vs. cross-validation error rate
+ plot(cv$size , cv$dev, type=&quot;b&quot;, xlab = &quot;Number of leaves, \&#39;best\&#39;&quot;,
+      ylab = &quot;CV Misclassification Error&quot;, col = &quot;red&quot;, main=&quot;CV&quot;)
+ abline(v=best.cv, lty=2)
+
+# Add lines to identify complexity parameter
+min.error = which.min(cv$dev) # Get minimum error index
+abline(h = cv$dev[min.error],lty = 2)
+# Prune tree
+pt.cv = prune.tree(tree.nba, best=best.cv)
+
+# # Plot pruned tree
+plot(pt.cv)
+text(pt.cv, pretty=0, col = &quot;blue&quot;, cex = .5)
+title(&quot;Pruned tree of size&quot;)
+# Predict on test set
+pred.pt.cv = predict(pt.cv, testing, type=&quot;vector&quot;)
+
+# mean squared error
+w = mean((pred.pt.cv-testing$Salary)^2)
+w
+# root mean squared error
+g=sqrt(w)
+g
+rf_our_data = randomForest(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, mtry=3, ntree=500, importance=TRUE)
+rf_our_data                        
+yhat.rf = predict (rf_our_data, newdata = testing_salarymean)
+# Confusion matrix
+rf.err = table(pred = yhat.rf, truth = testing_salarymean$salarygreater) 
+test.rf.err = 1 - sum(diag(rf.err))/sum(rf.err) 
+test.rf.err
+varImpPlot(rf_our_data, sort=T, main=&quot;Variable Importance for rf_our_data&quot;, n.var=5)
+dat &lt;- our_data %&gt;% select(-1)
+summary(dat)
+apply(dat, 2, var)
+pr.out = prcomp(dat, scale = TRUE)
+pr.out$center
+pr.out$scale
+pr.out$rotation
+all &lt;- pr.out$x
+biplot(pr.out, scale = 0)
+
+pr.out$sdev
+pr.var = pr.out$sdev^2
+pr.var
+pve = pr.var/sum(pr.var)
+pve
+plot(pve, xlab = &quot;Principal Component&quot;, ylab = &quot;Proportion of Variance Explained&quot;, ylim = c(0,1), type = &quot;b&quot;)
+plot(cumsum(pve), xlab=  &quot;Principal Component&quot;, ylab = &quot;Cumulative Proportion of Variance Explained&quot;, ylim=c(0,1), type= &quot;b&quot;)
+pr.out$rotation[,1:2]
+salary_prediction &lt;- function(m, points, assists, minutes, turnovers, minutes_p, free_throws, offense_plus_minus, value){
+
+  pre_new &lt;- predict(m, data.frame(PPG = points, APG = assists, MPG= minutes, TPG =  turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
+
+  msg &lt;- paste(&quot;PPG:&quot;, points, &quot;,APG:&quot;, assists, &quot;,MPG:&quot;, minutes, &quot;,TPG:&quot;, turnovers, &quot;,Minutes_percent:&quot;, minutes_p, &quot;,free_throws_attempted:&quot;, free_throws, &quot;,Offensive_Box_Plus_Minus:&quot;, offense_plus_minus, &quot;,Value_Over_Replacement&quot;, value ,&quot; ==&gt; Expected Salary: $&quot;, format(round(pre_new), big.mark = &quot;,&quot;), sep = &quot;&quot;)
+  
+  print(msg)
+}
+
+model &lt;- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
+
+
+
+our_data[which(our_data$Player == &quot;Danny Green&quot;),]
+
+salary_prediction(m = model, points = 9.5, assists = 1.7, minutes = 28, turnovers = 0.96, minutes_p = 58.4, free_throws = 40, offense_plus_minus = -1.1, value = 0.2)
+
+
+
+our_data[which(our_data$Player == &quot;Nemanja Bjelica&quot;),]
+
+salary_prediction(m = model, points = 7.2, assists = 1.9, minutes = 16.9, turnovers = 1.08, minutes_p = 35.2, free_throws = 42, offense_plus_minus = -1.4, value = -0.1)</code></pre>
 </div>
 
 
