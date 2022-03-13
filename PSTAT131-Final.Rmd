@@ -603,16 +603,32 @@ salary_prediction <- function(m, points, assists, minutes, turnovers, minutes_p,
 
 model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
 
-# We test for a player such as Danny Green
+
+```
+
+We test for a player such as Danny Green.
+
+```{r}
+
 our_data[which(our_data$Player == "Danny Green"),]
 
 salary_prediction(m = model, points = 9.5, assists = 1.7, minutes = 28, turnovers = 0.96, minutes_p = 58.4, free_throws = 40, offense_plus_minus = -1.1, value = 0.2)
 
-# We test for a player such as Nemanja Bjelica
+
+```
+
+Based on our prediction, his salary will be \$8,352,181, and his real salary is \$10,000,000.
+
+We test again for a player such as Nemanja Bjelica.
+
+```{r}
+
 our_data[which(our_data$Player == "Nemanja Bjelica"),]
 
 salary_prediction(m = model, points = 7.2, assists = 1.9, minutes = 16.9, turnovers = 1.08, minutes_p = 35.2, free_throws = 42, offense_plus_minus = -1.4, value = -0.1)
 
 ```
+
+Based on our prediction, his salary will be \$3,532,444, and his real salary is \$2,089,448.
 
 # Conclusion

@@ -1278,24 +1278,27 @@ training MSE and highest R-squared.</p>
   print(msg)
 }
 
-model &lt;- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
-
-# We test for a player such as Danny Green
-our_data[which(our_data$Player == &quot;Danny Green&quot;),]</code></pre>
+model &lt;- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)</code></pre>
+<p>We test for a player such as Danny Green.</p>
+<pre class="r"><code>our_data[which(our_data$Player == &quot;Danny Green&quot;),]</code></pre>
 <pre><code>##          Player   Salary PPG APG MPG  TPG Minutes_percent free_throws_attempted
 ## 127 Danny Green 10000000 9.5 1.7  28 0.96            58.4                    40
 ##     Offensive_Box_Plus_Minus Value_Over_Replacement
 ## 127                     -1.1                    0.2</code></pre>
 <pre class="r"><code>salary_prediction(m = model, points = 9.5, assists = 1.7, minutes = 28, turnovers = 0.96, minutes_p = 58.4, free_throws = 40, offense_plus_minus = -1.1, value = 0.2)</code></pre>
 <pre><code>## [1] &quot;PPG:9.5,APG:1.7,MPG:28,TPG:0.96,Minutes_percent:58.4,free_throws_attempted:40,Offensive_Box_Plus_Minus:-1.1,Value_Over_Replacement0.2 ==&gt; Expected Salary: $8,352,181&quot;</code></pre>
-<pre class="r"><code># We test for a player such as Nemanja Bjelica
-our_data[which(our_data$Player == &quot;Nemanja Bjelica&quot;),]</code></pre>
+<p>Based on our prediction, his salary will be $8,352,181, and his real
+salary is $10,000,000.</p>
+<p>We test again for a player such as Nemanja Bjelica.</p>
+<pre class="r"><code>our_data[which(our_data$Player == &quot;Nemanja Bjelica&quot;),]</code></pre>
 <pre><code>##             Player  Salary PPG APG  MPG  TPG Minutes_percent
 ## 46 Nemanja Bjelica 2089448 7.2 1.9 16.9 1.08            35.2
 ##    free_throws_attempted Offensive_Box_Plus_Minus Value_Over_Replacement
 ## 46                    42                     -1.4                   -0.1</code></pre>
 <pre class="r"><code>salary_prediction(m = model, points = 7.2, assists = 1.9, minutes = 16.9, turnovers = 1.08, minutes_p = 35.2, free_throws = 42, offense_plus_minus = -1.4, value = -0.1)</code></pre>
 <pre><code>## [1] &quot;PPG:7.2,APG:1.9,MPG:16.9,TPG:1.08,Minutes_percent:35.2,free_throws_attempted:42,Offensive_Box_Plus_Minus:-1.4,Value_Over_Replacement-0.1 ==&gt; Expected Salary: $3,532,444&quot;</code></pre>
+<p>Based on our prediction, his salary will be $3,532,444, and his real
+salary is $2,089,448.</p>
 </div>
 </div>
 <div id="conclusion" class="section level1">
