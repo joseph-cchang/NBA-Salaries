@@ -579,7 +579,7 @@ plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
 ```
 
-Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Having greater PPG is the best "indicator" for variance explained in data.
+Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%. 
 
 ```{r}
 pr.out$rotation[,1:2]
@@ -632,3 +632,23 @@ salary_prediction(m = model, points = 7.2, assists = 1.9, minutes = 16.9, turnov
 Based on our prediction, his salary will be \$3,532,444, and his real salary is \$2,089,448.
 
 # Conclusion
+
+# References
+
+We used these sites to find our data: 
+https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba2021_advanced.csv
+
+https://www.nbastuffer.com/2020-2021-nba-player-stats/
+
+https://www.basketball-reference.com/contracts/players.html
+
+# Appendix
+
+```{r get-labels, echo = FALSE}
+labs = knitr::all_labels()
+labs = setdiff(labs, c("setup", "get-labels"))
+```
+
+```{r all-code, ref.label=labs, eval=FALSE}
+```
+
