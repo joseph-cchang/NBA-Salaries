@@ -119,6 +119,8 @@ labels2 <- c('Rank', 'Player', 'Salary', 'Use', 'Guaranteed')
 salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 ```
 
+# Data Cleaning
+
 ## Merge data into unified dataset
 
 This is where we merge the three datasets while also removing duplicated columns and columns that show unrelated/insignificant statistics. In addition, this unified dataset changes all columns (except Player and Salary) to dbl form for more convenient use later on. Small remark: a new column called Total_Minutes was added to see if it has any effect on data.
@@ -190,7 +192,7 @@ plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main="Scatterplot of Sa
 plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Salary vs. Value Over Replacement", xlab="Salary", ylab="Value Over Replacement", pch=19)
 ```
 
-## Training and Testing data
+## Data splitting
 
 In our models we need testing and training sets. To split, the training data will be 80% of the data and testing will be 20%. Here we define them and will proceed with these in mind.
 
@@ -256,7 +258,7 @@ mean((train.predict3-training$Salary)^2)
 mean((test.predict3-testing$Salary)^2)
 ```
 
-Based from the 3 fitted models, the largest R-squared came from fit1 at around 0.65. Next, I chose the model with the least MSE for training and testing. fit1 had the least MSE for training, but fit3 had the least MSE for testing. To break the tie, I will consider the R-squared again, meaning fit1 is most appropriate.
+Based from the 3 fitted models, the largest R-squared came from fit1 at around 0.65. Next, I chose the model with the least MSE for training and testing. fit1 had the least MSE for training, but fit3 had the least MSE for testing. 
 
 ## Logistic regression
 
@@ -313,9 +315,10 @@ auc
 
 From the result of the error rate and the AUC curve, we can conclude that the eight variables we choose above are good predictors of  the "salarygreater" variables. Hence, we may continue our analysis of the variables in the later project later by using different methods.
 
-## Training, Testing for Ridge/ Lasso
+# Ridge and Lasso
+#### Training, Testing for Ridge/ Lasso
 
-We chose to do ridge & lasso because it eliminates overfitting through regularization. To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front of the training and testing means all predictors except the response variable (Salary). The y in front signifies the response (Salary)
+We chose to do ridge & lasso because it eliminates overfitting through regularization. To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front of the training and testing means all predictors except the response variable (Salary). The y signifies the response (Salary)
 
 ```{r}
 x <- model.matrix(Salary ~ ., data= fit_data)
@@ -327,9 +330,9 @@ x.test <- as.matrix(testing[,-1])
 y.test <- as.matrix(testing$Salary)
 ```
 
-## Ridge regression
+#### Ridge regression
 
-This part is dedicated for the ridge regression. I first defined the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor. This represents the distance of each predictor to the response. The lower the distance, the better.
+I first defined the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor.
 
 ```{r}
 lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
@@ -339,23 +342,22 @@ ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds
 ridge.pred_1 = predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", newx=x.test)
 ```
 
-Then, I found the mean squared error for this ridge model.
+Then, I found the mean squared error for this ridge regression model.
 
 ```{r}
 ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
 mean((ridge.pred-y.test)^2)
 ```
 
-Next, I used cross-validation to choose the best tuning parameter.
+Next, I used cross-validation to choose the best tuning parameter (best lambda) and its plot
 
 ```{r}
-set.seed(3142022)
+set.seed(3152022)
 cv.out.ridge = cv.glmnet(x.train, y.train, alpha= 0)
 plot(cv.out.ridge)
 abline(v=log(cv.out.ridge$lambda.min), col = "blue", lwd=3, lty=2)
 
 bestlam = cv.out.ridge$lambda.min
-bestlam
 ```
 
 Here is the mean squared error for best lambda.
@@ -365,25 +367,28 @@ ridge.pred=predict(ridge.mod, s = bestlam, newx=x.test)
 mean((ridge.pred-y.test)^2)
 ```
 
-This prints out the coefficients of the best lambda. The glmnet function selects the minimum lambda and that lambda is used to predict the coefficients.
+I printed out the coefficients of the best lambda. The glmnet function selects the minimum lambda and that lambda is used to predict the coefficients.
 
 ```{r}
 out = glmnet(x,y,alpha=0)
 predict(out, type="coefficients", s=bestlam)
 ```
 
-## Lasso regression
+These coefficients represent the distance of each predictor to the response variable of Salary. I can determine that free_throws_attempted was the least and Value_Over_Replacement was highest. Since the MSE of testing for the best lambda value is less than the MSE of testing for the 5-folds CV, I will use the best lambda value MSE of testing which is around 7.172e+13.
+
+
+#### Lasso regression
 
 Next, I fit a lasso model using the glmnet function with alpha as 1 with 5 folds cross validation. I plotted the model to see if coefficients can be zero.
 
 ```{r}
-set.seed(3142022)
+set.seed(3152022)
 lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
 lasso.mod <- glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds = 5)
 plot(lasso.mod, xvar="lambda", label=TRUE)
 ```
 
-In this step, I performed cross validation and computed test error.
+In this step, I performed cross validation and MSE of testing data.
 
 ```{r}
 cv.out.lasso = cv.glmnet(x.train,y.train,alpha=1)
@@ -401,8 +406,9 @@ Like the ridge regression, I used this step to print out the coefficients of the
 out = glmnet(x, y, alpha=1, lambda=lambda.list.lasso)
 lasso.coef = predict(out, type="coefficients", s=bestlam)
 lasso.coef
-
 ```
+
+Just like for ridge, I can determine that turnovers_per_game was the least and Value_Over_Replacement was highest. The MSE of testing is around  7.171e+13, which is lower than the one given in the ridge regression.
 
 ## Regression Decision Tree:
 
@@ -460,7 +466,7 @@ z
 To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes, because the cross-validation misclassification error is the lowest at that point.
 
 ```{r}
-set.seed(3142022)
+set.seed(3152022)
 
 #K=10-Fold cross validation
 cv = cv.tree(tree.nba, K=10)
@@ -505,7 +511,7 @@ g
 
 The mean squared error is lower (8100514) than that of the non-pruned tree; the pruned tree with 9 terminal nodes is a better model.
 
-## random forest
+## Random forest
 
 First, we will fit a random forest model on the "Salarygreater" variable whichis whether a player's salary is greater than the average salary of the league.
 
@@ -536,21 +542,26 @@ From the graphs we can see that among all the trees in the random forest, PPG is
 
 ## PCA
 
-Next, I used PCA to find the most influential predictors in the model. I first created dataset called dat that includes all predictors and found their variances. Using Principle component Analysis, I found center(mean), scale (standard deviation), rotation (principle component loadings), and x(matrix of all principle component vectors)
+Next, we used PCA to find the most influential predictors in the model. We first created dataset called dat that includes all predictors and found their variances.
 
 ```{r}
 dat <- our_data %>% select(-1)
 summary(dat)
 apply(dat, 2, var)
+```
 
+
+Using Principle component Analysis, we found mean and standard deviation of the variables before PCA. There is also principal component loadings and a matrix of all principal component vectors (not shown in output due to excessive output)
+
+```{r}
 pr.out = prcomp(dat, scale = TRUE)
-means <- pr.out$center
-sds <- pr.out$scale
-loads <- pr.out$rotation
+pr.out$center
+pr.out$scale
+pr.out$rotation
 all <- pr.out$x
 ```
 
-I plotted the first and second prinicple components to visualize the data. I then output the standard deviation and variance of of each prinicple component. Last, I found pve, the number of principle components needed.
+I plotted the first and second prinicipal components to visualize the data. I then output the standard deviation and variance explained by each priniciple component from highest to lowest. Last, I found proportion of variance explained by each principal component from highest to lowest.
 
 ```{r}
 biplot(pr.out, scale = 0)
@@ -569,21 +580,19 @@ plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
 ```
 
-Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values.
+Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Having greater PPG is the best "indicator" for variance explained in data.
 
 ```{r}
-pr.out$rotation[,1]
+pr.out$rotation[,1:2]
 ```
 
-The first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Having greater PPG is the best "indicator" for variance explained in data.
+Based from the principal component loadings, the highest value in the first principal component is PPG, while the least is Value_over_Replacement. In the second PC, the highest is Offensive_Box_Plus_Minus and lowest is APG. 
 
 ## Function to predict
 
+This is the final step: predicting a player's salary. We will go through the models and look for the best model to fit by finding lowest MSE. We determined that in the linear regression, both testing and training MSE were lower than the rest of the models. In order to determine which fit to use, we chose fit1 because it has the lowest training MSE and highest R-squared. 
+
 ```{r}
-
-# user.name <- readline(prompt = "Please type your name ")
-#   print(paste("Users name is", user.name))
-
 salary_prediction <- function(m, points, assists, minutes, turnovers, minutes_p, free_throws, offense_plus_minus, value){
 
   pre_new <- predict(m, data.frame(PPG = points, APG = assists, MPG= minutes, TPG =  turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
@@ -593,9 +602,18 @@ salary_prediction <- function(m, points, assists, minutes, turnovers, minutes_p,
   print(msg)
 }
 
-model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = our_data)
+model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
 
-salary_prediction(m = model, points = 20, assists = 5, minutes = 30, turnovers = 2, minutes_p = 60, free_throws = 80, offense_plus_minus = 2.3, value = 1.3)
+# We test for a player such as Danny Green
+our_data[which(our_data$Player == "Danny Green"),]
+
+salary_prediction(m = model, points = 9.5, assists = 1.7, minutes = 28, turnovers = 0.96, minutes_p = 58.4, free_throws = 40, offense_plus_minus = -1.1, value = 0.2)
+
+# We test for a player such as Nemanja Bjelica
+our_data[which(our_data$Player == "Nemanja Bjelica"),]
+
+salary_prediction(m = model, points = 7.2, assists = 1.9, minutes = 16.9, turnovers = 1.08, minutes_p = 35.2, free_throws = 42, offense_plus_minus = -1.4, value = -0.1)
+
 ```
 
 # Conclusion
