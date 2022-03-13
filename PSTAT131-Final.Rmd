@@ -258,7 +258,7 @@ mean((train.predict3-training$Salary)^2)
 mean((test.predict3-testing$Salary)^2)
 ```
 
-Based from the 3 fitted models, the largest R-squared came from fit1 at around 0.65. Next, I chose the model with the least MSE for training and testing. fit1 had the least MSE for training, but fit3 had the least MSE for testing. 
+Based from the 3 fitted models, the largest R-squared came from fit1 at around 0.65. Next, I chose the model with the least MSE for training and testing. fit1 had the least MSE for training, but fit3 had the least MSE for testing.
 
 ## Logistic regression
 
@@ -316,6 +316,7 @@ auc
 From the result of the error rate and the AUC curve, we can conclude that the eight variables we choose above are good predictors of  the "salarygreater" variables. Hence, we may continue our analysis of the variables in the later project later by using different methods.
 
 # Ridge and Lasso
+
 #### Training, Testing for Ridge/ Lasso
 
 We chose to do ridge & lasso because it eliminates overfitting through regularization. To start, I defined the training and testing sets for this process. In each training and testing, I had to split as x.train and y train as well as x.test and y.test. The x in front of the training and testing means all predictors except the response variable (Salary). The y signifies the response (Salary)
@@ -376,7 +377,6 @@ predict(out, type="coefficients", s=bestlam)
 
 These coefficients represent the distance of each predictor to the response variable of Salary. I can determine that free_throws_attempted was the least and Value_Over_Replacement was highest. Since the MSE of testing for the best lambda value is less than the MSE of testing for the 5-folds CV, I will use the best lambda value MSE of testing which is around 7.172e+13.
 
-
 #### Lasso regression
 
 Next, I fit a lasso model using the glmnet function with alpha as 1 with 5 folds cross validation. I plotted the model to see if coefficients can be zero.
@@ -408,7 +408,7 @@ lasso.coef = predict(out, type="coefficients", s=bestlam)
 lasso.coef
 ```
 
-Just like for ridge, I can determine that turnovers_per_game was the least and Value_Over_Replacement was highest. The MSE of testing is around  7.171e+13, which is lower than the one given in the ridge regression.
+Just like for ridge, I can determine that turnovers_per_game was the least and Value_Over_Replacement was highest. The MSE of testing is around 7.171e+13, which is lower than the one given in the ridge regression.
 
 ## Regression Decision Tree:
 
@@ -550,7 +550,6 @@ summary(dat)
 apply(dat, 2, var)
 ```
 
-
 Using Principle component Analysis, we found mean and standard deviation of the variables before PCA. There is also principal component loadings and a matrix of all principal component vectors (not shown in output due to excessive output)
 
 ```{r}
@@ -586,11 +585,11 @@ Based from the plot, the elbow point shows point 2, meaning I should consider th
 pr.out$rotation[,1:2]
 ```
 
-Based from the principal component loadings, the highest value in the first principal component is PPG, while the least is Value_over_Replacement. In the second PC, the highest is Offensive_Box_Plus_Minus and lowest is APG. 
+Based from the principal component loadings, the highest value in the first principal component is PPG, while the least is Value_over_Replacement. In the second PC, the highest is Offensive_Box_Plus_Minus and lowest is APG.
 
 ## Function to predict
 
-This is the final step: predicting a player's salary. We will go through the models and look for the best model to fit by finding lowest MSE. We determined that in the linear regression, both testing and training MSE were lower than the rest of the models. In order to determine which fit to use, we chose fit1 because it has the lowest training MSE and highest R-squared. 
+This is the final step: predicting a player's salary. We will go through the models and look for the best model to fit by finding lowest MSE. We determined that in the linear regression, both testing and training MSE were lower than the rest of the models. In order to determine which fit to use, we chose fit1 because it has the lowest training MSE and highest R-squared.
 
 ```{r}
 salary_prediction <- function(m, points, assists, minutes, turnovers, minutes_p, free_throws, offense_plus_minus, value){
