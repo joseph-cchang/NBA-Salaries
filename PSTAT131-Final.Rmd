@@ -415,7 +415,7 @@ tree_our_data=tree(Salary~. , data = our_data)
 summary(tree_our_data)
 ```
 
-Here we plot our decision tree using two different tree plotting functions, plot and draw tree. Both trees show the same idea and have 12 terminal nodes.
+Here we plot our decision tree using two different tree plotting functions, plot and draw tree. Both trees show the same idea and have 9 terminal nodes.
 
 ```{r}
 # plot the fitted tree
@@ -439,13 +439,13 @@ draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
 title("Regression Tree Built on Training Set")
 ```
 
-We can see in the summary that the tree modeled by the training set has 10 terminal nodes, whereas the previous tree had 12 terminal nodes.
+We can see in the summary that the tree modeled by the training set has 9 terminal nodes, and the previous tree had 9 terminal nodes as well.
 
 ```{r}
 summary(tree.nba)
 ```
 
-Now here we do a prediction on the test set using the predict() command. We specify type='vector' because we are working with a regression decision tree. Then we calculate the mean squared error which is 6.68e+13 and root mean squared error which is 8173153.
+Now here we do a prediction on the test set using the predict() command. We specify type='vector' because we are working with a regression decision tree. Then we calculate the mean squared error which is 9.12e+13 and root mean squared error which is 9549613.
 
 ```{r}
 # Predict on test set
@@ -481,7 +481,7 @@ min.error = which.min(cv$dev) # Get minimum error index
 abline(h = cv$dev[min.error],lty = 2)
 ```
 
-We can now plot the pruned tree with 9 terminal nodes. The mean squared error (MSE) is lowest when the number of terminal nodes is 9.
+We can now plot the pruned tree with 6 terminal nodes. The mean squared error (MSE) is lowest when the number of terminal nodes is 6.
 
 ```{r}
 # Prune tree
@@ -505,7 +505,7 @@ g=sqrt(w)
 g
 ```
 
-The mean squared error is lower (8100514) than that of the non-pruned tree; the pruned tree with 9 terminal nodes is a better model.
+The mean squared error is lower (8636943) than that of the non-pruned tree; the pruned tree with 6 terminal nodes is a better model.
 
 ## Random forest
 
