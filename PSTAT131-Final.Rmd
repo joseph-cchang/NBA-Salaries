@@ -579,7 +579,7 @@ plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained
 plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
 ```
 
-Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%. 
+Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%.
 
 ```{r}
 pr.out$rotation[,1:2]
@@ -633,14 +633,42 @@ Based on our prediction, his salary will be \$3,532,444, and his real salary is 
 
 # Conclusion
 
+After merging and filtering our dataset, we find out that the 8 variables which have the highest correlation with the players' salary are Points per game, Assists per game, minutes per game, turnovers per game, minutes percent, free-throws-attempted, offensive-box-plus-minus, and value_over_replacement. The result makes sense for us because it shows that the amount of time players spend on the court is highly correlated with their salary. However, we also find it interesting that the players' salary is weighted more towards their offensive statistics such as points per game and assists per game rather than their defensive statistics such as rebounds per game, steals per game, and blocks per game. In the sport of basketball, if a player can produce more on the offensive side, he will earn more money. 
+
+After that, we started our analysis on NBA players' salary by plotting the histograms and the scatter plot of salary with the 8 variables listed above to have a first glance of the relationship between salary and the 8 variables we will analyze later in the project. Having some acknowledgement of our dataset, we reach an exploratory data analysis and split our data into a training dataset and testing dataset.
+
+Next, we start to fit our data into different models: linear regression model, logistics regression model, Ridge / Lasso regression model, regression decision tree, random forest, and PCA. 
+
+Here is a list of conclusions we developed from each model: 
+
+[Linear regression:]{.underline} There were 3 fitted models. The first fit showed all predictors vs Salary, the second showed significant predictors from the first, and the third showed significant predictors from the second. We concluded that the largest R-squared came from fit1 at around 0.65. The fit1 also had the least training MSE at 3.409e+13, but fit3 had the least testing MSE at 7.304e+13.
+
+[Logistic regression:]{.underline} Since all the eight variables we use are numeric variables, we create a new binary predictor called "Salarygreater". After we get the error rate of about 0.2 for both training and testing dataset, and the AUC of about 0.8226, we conclude that the eight variables we choose are good predictors of  the "Salarygreater" variables. 
+
+[Ridge regression:]{.underline} We originally tested the lambda value on 5-folds cross validation, but found using the best tuning parameter was better at predicting coefficients because testing MSE for best lambda at 7.172e+13 is less than the testing MSE for the 5-folds CV at 7.175e+13. We determined coefficients for free_throws_attempted was the least at 9350 and Value_Over_Replacement was highest at 3025371. These numbers represent the distance of each predictor to the response variable of Salary. \
+
+[Lasso regression:]{.underline} The least coefficient for lasso was turnovers_per_game at -882401 and the greatest was Value_Over_Replacement at 3852047. The MSE of testing is around 7.171e+13, which is lower than the one given in the ridge regression.
+
+[Random Forest:]{.underline} we fit the random forest model again to the "Salarygreater" to get a error rate of about 0.2. In addition, according to the  Model Accuracy and Gini index, we find out that PPG is the most important variable, which corresponds to our finding in the linear regression method.
+
+[Regression Decision Tree:]{.underline} 
+
+\
+
+[PCA:]{.underline} After plotting the Proportion of Variance Explained and its cumulative values, we determined that the elbow point showed point 2, meaning we should consider the first two PCAs. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Based on the principal component loadings, the highest value in the first principal component is PPG at 0.3759, while the least is Value_over_Replacement at 0.3053. In the second PC, the highest is Offensive_Box_Plus_Minus at around 0.55 and lowest is APG at -0.32. These numbers show how much variance can be explained by the predictor.
+
+The final step of this project is to predict the players' salary. As an example, we took Danny Green and Nemanja Bjelica's statistics to predict their salary. We can conclude that our model is somewhat accurate, as our predicted values differ from the actual by around only 1-2 million dollars. Overall, we can conclude that our model is only 65% accurate and still can be used to predict the majority of players' salaries correctly. 
+
+\
+We would like to acknowledge Katie Coburn for her contributions and assistance with this project and taking the time, effort, and energy out of her busy schedules to help us. Additionally, we would like to thank Michael La, Maria Gao, Vicky Cui, and Lihao Xiao.
+
 # References
 
-We used these sites to find our data: 
-https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba2021_advanced.csv
+We used these sites to find our data: <https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba2021_advanced.csv>
 
-https://www.nbastuffer.com/2020-2021-nba-player-stats/
+<https://www.nbastuffer.com/2020-2021-nba-player-stats/>
 
-https://www.basketball-reference.com/contracts/players.html
+<https://www.basketball-reference.com/contracts/players.html>
 
 # Appendix
 
@@ -651,4 +679,3 @@ labs = setdiff(labs, c("setup", "get-labels"))
 
 ```{r all-code, ref.label=labs, eval=FALSE}
 ```
-
