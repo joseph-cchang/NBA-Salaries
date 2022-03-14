@@ -673,7 +673,7 @@ Here is a list of conclusions we developed from each model: 
 
 [Regression Decision Tree:]{.underline} 
 
-\
+We created a regression based decision tree based on "our_data". This tree had 9 terminal nodes. We then fit the model to our training set and again the tree had 9 terminal nodes, or leaves.  The mean squared error for this tree was \$9549613. We then did a ten fold cross validation to see that the ideal number of leaves are 6 leaves. The variables used in this tree's construction include "free_throws_attempted", "PPG", "Minutes_percent", "Offensive_Box_Plus_Minus" and "MPG". The mean squared error after pruning was \$8636943. We can see that the pruned tree is a better predictor because it has a lower mean squared error.\
 
 [PCA:]{.underline} After plotting the Proportion of Variance Explained and its cumulative values, we determined that the elbow point showed point 2, meaning we should consider the first two PCAs. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Based on the principal component loadings, the highest value in the first principal component is PPG at 0.3759, while the least is Value_over_Replacement at 0.3053. In the second PC, the highest is Offensive_Box_Plus_Minus at around 0.55 and lowest is APG at -0.32. These numbers show how much variance can be explained by the predictor.
 
