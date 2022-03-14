@@ -42,11 +42,11 @@ library(randomForest)
 
 # Introduction
 
-After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes, live sports! From October to May we watch basketball stars like Lebron James dropping dimes, or Stephen Curry splashing from threes, but what factors lead these players to such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can actually range from 377,645 all the way to 45,780,966 USD. In our project we use statistical variables such as "PPG", or "Offensive Rating" in different statistical machine learning models to predict the salaries of NBA players in the 2021-2022 season.
+After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes: live sports! From October to May we watch basketball stars like Lebron James dropping dimes, or Stephen Curry splashing from threes. But what factors lead these players to such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can range from 377,645 all the way to 45,780,966 USD. In our project we use statistical variables such as "PPG", or "Offensive Rating" in different statistical machine learning models in the 2020-2021 season to predict the salaries of NBA players in the 2021-2022 season.
 
-We apply several statistical machine learning models like logistic regression and clustering to the data in order to predict the salary of a player based on eight main predictors, carefully selected after several correlation calculations and observations. We plan to explore the benefits and detriments of each model, by calculating statistics such as mean squared error, area under the curve, etc. We hope you enjoy it!
+We apply several statistical machine learning models like linear regression, logistic regression, decision trees to the data in order to predict the salary of a player based on eight main predictors, carefully selected after several correlation calculations and observations. We plan to explore the benefits and detriments of each model, by calculating statistics such as mean squared error, area under the curve, etc. We hope you enjoy it!
 
-Some of the players may be repeated because he was traded mid-season.
+It is worth noring that some of the players in the data may be repeated because he was traded mid-season.
 
 Before we dive into the data, the definitions of the variables should be clarified first. The eight definitions that are bolded will be the predictors we focus on in the project. The others will be all the definitions of the variables that appear in our dataset.
 
@@ -115,7 +115,7 @@ labels2 <- c('Rank', 'Player', 'Salary', 'Use', 'Guaranteed')
 salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
 ```
 
-# Data Cleaning
+## Data Cleaning
 
 This is where we merge the three datasets while also removing duplicated columns and columns that show unrelated/insignificant statistics. In addition, this unified dataset changes all columns (except Player and Salary) to dbl form for more convenient use later on. Small remark: a new column called Total_Minutes was added to see if it has any effect on data.
 
@@ -157,7 +157,9 @@ corr_Salary[which(corr_Salary > 0.6)]
 
 Based from the correlation, we will filter to only keep correlations with Salary above 0.6, meaning we will only use PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, and Value_Over_Replacement.
 
-From the 8 variables which have the highest correlation with salary, we have an interesting finding that the offensive statistics are more related to the salary than the defensive statistics. For example, points per game and assists per game are more correlated with salary than rebounds per game, steals per game, and blocks per game from the data above. In addition, offensive box plus minus and free throws attempted are also two important indicators of players' offensive ability. Hence, we may reach a conclusion that players with better offensive statistics are more likely to earn a higher salary than players with better defensive statistics. Furthermore, variables such as minutes per game, minutes percent, and turnovers per game suggest that when players are more involved in the game, they are more likely to earn a higher salary. Even though turnovers per game may sound like a negative indicator of a player's ability, it is not true. Only when a player is important for a team, can he make more turnovers on the court. If a player is not necessary for a team, he will be immediately benched by the coach. In other words, turnovers per game, minutes per game, and minutes percent are all indicators of a player's usage rate by the coach.
+From the 8 variables which have the highest correlation with salary, we have an interesting finding that the offensive statistics are more related to the salary than the defensive statistics. For example, points per game and assists per game are more correlated with salary than rebounds per game, steals per game, and blocks per game from the data above. In addition, offensive box plus minus and free throws attempted are also two important indicators of players' offensive ability. 
+
+Furthermore, variables such as minutes per game, minutes percent, and turnovers per game suggest that player involvement on the court is also related to their salary. Even though turnovers per game may sound like a negative indicator of a player's ability, it is not true. Only when a player is important for a team, can he make more turnovers on the court. If a player is not necessary for a team, he will be immediately benched by the coach. In other words, turnovers per game, minutes per game, and minutes percent are all indicators of a player's usage rate by the coach.
 
 ## Final dataset and Histograms
 
@@ -216,6 +218,9 @@ testing <- as.data.frame(new_data$test)
 
 Our linear regression, logistic regression, ridge and lasso, regression decision tree, and random forest use the same training dataset, which contains 309 observations. The testing dataset contains 77 observations, for a total of 386 players.
 
+
+\
+
 # Model Building
 
 ## Linear regression
@@ -272,7 +277,7 @@ Based from the 3 fitted models, the largest R-squared came from fit1 at around 0
 
 ## Logistic regression
 
-Since all the nine variables we are going to use are numeric variables, and the logistic regression cannot be used to analyze numeric variables, we will create a new predictor called "salarygreater". "Salarygreater" tests whether a player's salary is greater than the average salary of the league. By producing this new binomial predictor, we can use logistic regression to analyze the salary condition of the players in a new perspective.
+Since all the nine variables we are going to use are numeric variables, and the logistic regression cannot be used to analyze numeric variables, we will create a new predictor called "salarygreater". "salarygreater" tests whether a player's salary is greater than the average salary of the league. By producing this new binomial predictor, we can use logistic regression to analyze the salary condition of the players in a new perspective.
 
 First, we will calculate the average salary of all players, and create the new binary variable "salarygreater" in the training dataset to test whether a certain player's salary is greater than the average. If the player's salary is greater than the average, it will show "1" in the "salarygreater"; if not, it will show "0".
 
@@ -298,7 +303,7 @@ calc_error_rate <- function(predicted.value, true.value){
 calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
 ```
 
-Similary, we will do the same process on the testing dataset to predict based on the logistic model created above and calculate the test error.
+Similarly, we will do the same process on the testing dataset to predict based on the logistic model created above and calculate the test error.
 
 ```{r}
 testing_salarymean<- testing %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
@@ -323,7 +328,7 @@ auc <- performance(pred, "auc")@y.values[[1]]
 auc
 ```
 
-From the result of the error rate and the AUC curve, we can conclude that the eight variables we choose above are good predictors of  the "salarygreater" variables. Hence, we may continue our analysis of the variables in the later project later by using different methods.
+From the result of the error rate and the AUC curve, we can conclude that the eight variables we choose above are good predictors of the "salarygreater" variables. Hence, we may continue our analysis of the variables in the later project later by using different methods.
 
 ## Ridge and Lasso
 
@@ -422,7 +427,7 @@ Just like for ridge, I can determine that turnovers_per_game was the least and V
 
 ## Regression Decision Tree:
 
-Here, we start by using the tree() function to create a decision tree using our_data. Then we take a summary of this tree to see variables used in tree construction, number of terminal nodes, and residual information.
+Here, we start by using the tree() function to create a decision tree. Then we take a summary of this tree to see variables used in tree construction, number of terminal nodes, and residual information.
 
 ```{r}
 tree_our_data=tree(Salary~. , data = our_data) 
@@ -434,11 +439,8 @@ Here we plot our decision tree using two different tree plotting functions, plot
 ```{r}
 # plot the fitted tree
 plot(tree_our_data)
-text(tree_our_data, pretty = 0, cex = .4, col = "blue")
-title("Decision tree on our_data", cex = 0.8)
-```
-
-```{r}
+text(tree_our_data, pretty = 0, cex = 0.4, col = "blue")
+title("Decision tree on our_data", cex = 1)
 draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
 ```
 
@@ -449,7 +451,7 @@ Furthermore, we fit the regression decision tree model to the training set and p
 tree.nba = tree(Salary~. , data = training)
  
 # Plot the tree
-draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.4)
+draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.6)
 title("Regression Tree Built on Training Set")
 ```
 
@@ -467,23 +469,21 @@ tree.pred = predict(tree.nba, testing, type="vector")
 
 # mean squared error
 y = mean((tree.pred-testing$Salary)^2)
-y
+
 # root mean squared error
-z=sqrt(y)
-z
+sqrt(y)
 ```
 
-To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes, because the cross-validation misclassification error is the lowest at that point.
+To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes because the cross-validation mis-classification error is the lowest at that point.
 
 ```{r}
 set.seed(3152022)
 
-#K=10-Fold cross validation
+# K=10-Fold cross validation
 cv = cv.tree(tree.nba, K=10)
 
 # the tree with smaller size
 best.cv = min(cv$size[cv$dev == min(cv$dev)])
-best.cv
 
 # Plot size vs. cross-validation error rate
  plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
@@ -495,7 +495,7 @@ min.error = which.min(cv$dev) # Get minimum error index
 abline(h = cv$dev[min.error],lty = 2)
 ```
 
-We can now plot the pruned tree with 6 terminal nodes. The mean squared error (MSE) is lowest when the number of terminal nodes is 6.
+We can now plot the pruned tree with 6 terminal nodes, which implies the mean squared error (MSE) is lowest when the number of terminal nodes is 6.
 
 ```{r}
 # Prune tree
@@ -512,18 +512,18 @@ title("Pruned tree of size")
 pred.pt.cv = predict(pt.cv, testing, type="vector")
 
 # mean squared error
-w = mean((pred.pt.cv-testing$Salary)^2)
-w
+mean((pred.pt.cv-testing$Salary)^2)
+
 # root mean squared error
-g=sqrt(w)
-g
+sqrt(mean((pred.pt.cv-testing$Salary)^2))
+
 ```
 
 The mean squared error is lower (8636943) than that of the non-pruned tree; the pruned tree with 6 terminal nodes is a better model.
 
 ## Random forest
 
-First, we will fit a random forest model on the "Salarygreater" variable whichis whether a player's salary is greater than the average salary of the league.
+First, we will fit a random forest model on the "salarygreater" variable which is whether a player's salary is greater than the average salary of the league.
 
 ```{r}
 rf_our_data = randomForest(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, mtry=3, ntree=500, importance=TRUE)
@@ -545,57 +545,11 @@ The test set error rate is shown above.
 Then we will get a plot with decreasing order of importance based on Model Accuracy and Gini value.
 
 ```{r}
-varImpPlot(rf_our_data, sort=T, main="Variable Importance for rf_our_data", n.var=5)
+varImpPlot(rf_our_data, sort=T, main="Variable Importance for rf_our_data", n.var=5, cex = 0.8)
 ```
 
 From the graphs we can see that among all the trees in the random forest, PPG is the most important variable in terms of Model Accuracy and Gini index.
 
-## PCA
-
-Next, we used PCA to find the most influential predictors in the model. We first created dataset called dat that includes all predictors and found their variances.
-
-```{r}
-dat <- our_data %>% select(-1)
-summary(dat)
-apply(dat, 2, var)
-```
-
-Using Principle component Analysis, we found mean and standard deviation of the variables before PCA. There is also principal component loadings and a matrix of all principal component vectors (not shown in output due to excessive output)
-
-```{r}
-pr.out = prcomp(dat, scale = TRUE)
-pr.out$center
-pr.out$scale
-pr.out$rotation
-all <- pr.out$x
-```
-
-I plotted the first and second prinicipal components to visualize the data. I then output the standard deviation and variance explained by each priniciple component from highest to lowest. Last, I found proportion of variance explained by each principal component from highest to lowest.
-
-```{r}
-biplot(pr.out, scale = 0)
-
-pr.out$sdev
-pr.var = pr.out$sdev^2
-pr.var
-pve = pr.var/sum(pr.var)
-pve
-```
-
-I plotted two graphs : the proportion of variance explained and the cumulative proportion of variance explained.
-
-```{r}
-plot(pve, xlab = "Principal Component", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "b")
-plot(cumsum(pve), xlab=  "Principal Component", ylab = "Cumulative Proportion of Variance Explained", ylim=c(0,1), type= "b")
-```
-
-Based from the plot, the elbow point shows point 2, meaning I should consider the first two PCA because they are the largest 2 values. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%.
-
-```{r}
-pr.out$rotation[,1:2]
-```
-
-Based from the principal component loadings, the highest value in the first principal component is PPG, while the least is Value_over_Replacement. In the second PC, the highest is Offensive_Box_Plus_Minus and lowest is APG.
 
 # Final Model Building
 
@@ -629,15 +583,7 @@ salary_prediction(m = model, points = 9.5, assists = 1.7, minutes = 28, turnover
 
 Based on our prediction, his salary will be \$8,352,181, and his real salary is \$10,000,000.
 
-We test again for a player such as Nemanja Bjelica.
-
-```{r}
-our_data[which(our_data$Player == "Nemanja Bjelica"),]
-
-salary_prediction(m = model, points = 7.2, assists = 1.9, minutes = 16.9, turnovers = 1.08, minutes_p = 35.2, free_throws = 42, offense_plus_minus = -1.4, value = -0.1)
-```
-
-Based on our prediction, his salary will be \$3,532,444, and his real salary is \$2,089,448.
+We test again for a player such as Bradley Beal
 
 ```{r}
 our_data[which(our_data$Player == "Bradley Beal"),]
@@ -645,11 +591,16 @@ our_data[which(our_data$Player == "Bradley Beal"),]
 salary_prediction(m = model, points = 31.3, assists = 4.4, minutes = 35.8, turnovers = 3.12, minutes_p = 74.5, free_throws = 459, offense_plus_minus = 6.3, value = 1.5)
 ```
 
+Based on our prediction, his salary will be around \$32 million, and his real salary is \$34,502,130.
+
+We test again for a player such as Jayson Tatum
+
 ```{r}
 our_data[which(our_data$Player == "Jayson Tatum"),]
 
 salary_prediction(m = model, points = 26.4, assists = 4.3, minutes = 35.8, turnovers = 2.67, minutes_p = 74.5, free_throws = 340, offense_plus_minus = 4.6, value = 1.4)
 ```
+Based on our prediction, his salary will be \$27,809,796, and his real salary is \$28,103,550.
 
 # Conclusion
 
@@ -657,7 +608,7 @@ After merging and filtering our dataset, we find out that the 8 variables which 
 
 After that, we started our analysis on NBA players' salary by plotting the histograms and the scatter plot of salary with the 8 variables listed above to have a first glance of the relationship between salary and the 8 variables we will analyze later in the project. Having some acknowledgement of our dataset, we reach an exploratory data analysis and split our data into a training dataset and testing dataset.
 
-Next, we start to fit our data into different models: linear regression model, logistics regression model, Ridge / Lasso regression model, regression decision tree, random forest, and PCA. 
+Next, we started to fit our data into different models: linear regression model, logistics regression model, Ridge / Lasso regression model, regression decision tree, and random forest.
 
 Here is a list of conclusions we developed from each model: 
 
@@ -671,13 +622,12 @@ Here is a list of conclusions we developed from each model:
 
 [Random Forest:]{.underline} we fit the random forest model again to the "Salarygreater" to get a error rate of about 0.2. In addition, according to the  Model Accuracy and Gini index, we find out that PPG is the most important variable, which corresponds to our finding in the linear regression method.
 
-[Regression Decision Tree:]{.underline} We created a regression based decision tree based on “our_data”. This tree had 9 terminal nodes. We then fit the model to our training set and again the tree had 9 terminal nodes, or leaves.  The mean squared error for this tree was \$9549613. We then did a ten fold cross validation to see that the ideal number of leaves are 6 leaves. The variables used in this tree’s construction include “free_throws_attempted”, “PPG”, “Minutes_percent”, “Offensive_Box_Plus_Minus” and “MPG”. The mean squared error after pruning was \$8636943. We can see that the pruned tree is a better predictor because it has a lower mean squared error.
+[Regression Decision Tree:]{.underline} We created a regression based decision tree based on “our_data”. This tree had 9 terminal nodes. We then fit the model to our training set and again the tree had 9 terminal nodes, or leaves.  The mean squared error for this tree was 9549613. We then did a ten fold cross validation to see that the ideal number of leaves was 6 leaves. The variables used in this tree’s construction include “free_throws_attempted”, “PPG”, “Minutes_percent”, “Offensive_Box_Plus_Minus” and “MPG”. The mean squared error after pruning was 8636943. We can see that the pruned tree is a better predictor because it has a lower mean squared error.
 
-\
 
-[PCA:]{.underline} After plotting the Proportion of Variance Explained and its cumulative values, we determined that the elbow point showed point 2, meaning we should consider the first two PCAs. Therefore, the first principal component explains 70% of the variance in data, the next principal component explains 10.48%. Based on the principal component loadings, the highest value in the first principal component is PPG at 0.3759, while the least is Value_over_Replacement at 0.3053. In the second PC, the highest is Offensive_Box_Plus_Minus at around 0.55 and lowest is APG at -0.32. These numbers show how much variance can be explained by the predictor.
 
-The final step of this project is to predict the players' salary. As an example, we took Danny Green and Nemanja Bjelica's statistics to predict their salary. We can conclude that our model is somewhat accurate, as our predicted values differ from the actual by around only 1-2 million dollars. Overall, we can conclude that our model is only 65% accurate and still can be used to predict the majority of players' salaries correctly. 
+
+The final step of this project is to predict the players' salary. As an example, we took Danny Green's, Bradley Beal's, Jayson Tatum's statistics to predict their salary. We can conclude that our model is somewhat accurate, as our predicted values differ from the actual by around only 1-2 million dollars. Overall, we can conclude that our model is only 65% accurate and still can be used to predict the majority of players' salaries correctly. 
 
 \
 We would like to acknowledge Katie Coburn for her contributions and assistance with this project and taking the time, effort, and energy out of her busy schedules to help us. Additionally, we would like to thank Michael La, Maria Gao, Vicky Cui, and Lihao Xiao.
