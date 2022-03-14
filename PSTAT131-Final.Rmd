@@ -135,7 +135,7 @@ conversion3 <- conversion2 %>% relocate((Total_Minutes), .before=MPG)
 
 ## Filter data
 
-Next, we wanted to filter out players who did not see the court often or were injured during the season. Keeping such players would skew the data and produce unnecessary outliers. Here, players with total minutes less than 336 minutes and less than 7 agmes were removed. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
+Next, we wanted to filter out players who did not see the court often or were injured during the season. Keeping such players would skew the data and produce unnecessary outliers. Here, players with total minutes less than 336 minutes and less than 7 games were removed. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
 
 ```{r}
 reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336) %>% select(Player:Salary) %>% drop_na()
@@ -198,7 +198,7 @@ plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Sala
 abline(lm(our_data$Value_Over_Replacement~our_data$Salary), col="red")
 ```
 
-From the scatterplots and the regression lines we can tell that salary tends to have a positive relationship with the 8 variables we choose above. In other words, the more time players stay on the court and the better players' offensive abilities are, the higher salaries they will earn.
+From the scatterplots and the lines of best fits we can tell that salary tends to have a positive relationship with the 8 variables we choose above. In other words, the more time a player stays on the court and the better players' offensive abilities are, the higher the salary they will earn.
 
 # Data splitting
 
