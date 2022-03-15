@@ -478,7 +478,7 @@ y = mean((tree.pred-testing$Salary)^2)
 sqrt(y)
 ```
 
-To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 9 is the ideal number of terminal nodes because the cross-validation mis-classification error is the lowest at that point.
+To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 6 is the ideal number of terminal nodes because the cross-validation misclassification error is the lowest at that point.
 
 ```{r}
 set.seed(3152022)
@@ -511,7 +511,7 @@ text(pt.cv, pretty=0, col = "blue", cex = .5)
 title("Pruned tree of size")
 ```
 
-The first split in this pruned tree is on free throws attempted, just like on the training set tree. To be exact the split is on 179.5 free throws attempted. The second splits are on points per game and offensive_box_plus_minus. To be exact the split is on 12.05 points per game and on an offensive contribution score of 5.05. The third and final splits are on a minutes percent of 44.65 and MPG of 30.2. 
+The first split in this pruned tree is on free throws attempted, just like on the training set tree. To be exact the split is on 179.5 free throws attempted. The second splits are on points per game and offensive_box_plus_minus. To be exact the split is on 12.05 points per game and on an offensive contribution score of 5.05. The third and final splits are on a minutes percent of 44.65 and a MPG, or average minutes per game, of 30.2. 
 
 ```{r}
 # Predict on test set
