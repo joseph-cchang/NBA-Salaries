@@ -443,6 +443,8 @@ text(tree_our_data, pretty = 0, cex = 0.4, col = "blue")
 title("Decision tree on our_data", cex = 1)
 draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
 ```
+The first split in this tree is on points per game. To be exact the split is on 14.06 points per game. The second splits are on minutes percent and free throws attempted. To be exact the split is on a minutes percent of 44.65 and 203 free throws attempted. The terminal nodes range from 7 observations to 143 observations and the total deviance explained is 69.1%.
+
 
 Furthermore, we fit the regression decision tree model to the training set and plot the tree using the draw.tree() command.
 
@@ -456,6 +458,8 @@ title("Regression Tree Built on Training Set")
 ```
 
 We can see in the summary that the tree modeled by the training set has 9 terminal nodes, and the previous tree had 9 terminal nodes as well.
+
+Though the trees have the same number of terminal nodes in the training set, the first split is on free throws attempted this time. To be exact the split is on 179.5 free throws attempted. The second splits are on 12.5 points per game and an offensive_box_plus_minus value of 5.05. The terminal nodes range from 5 observations to 115 observations and the total deviance explained is 74.7%.
 
 ```{r}
 summary(tree.nba)
@@ -506,6 +510,8 @@ plot(pt.cv)
 text(pt.cv, pretty=0, col = "blue", cex = .5)
 title("Pruned tree of size")
 ```
+
+The first split in this pruned tree is on free throws attempted, just like on the training set tree. To be exact the split is on 179.5 free throws attempted. The second splits are on points per game and offensive_box_plus_minus. To be exact the split is on 12.05 points per game and on an offensive contribution score of 5.05. The third and final splits are on a minutes percent of 44.65 and MPG of 30.2. 
 
 ```{r}
 # Predict on test set
