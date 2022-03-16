@@ -467,8 +467,8 @@ Now here we do a prediction on the test set using the predict() command. We spec
 ```{r}
 # Predict on test set
 tree.pred = predict(tree.nba, testing, type="vector")
-y = mean((tree.pred-testing$Salary)^2)
-sqrt(y)
+mean((tree.pred-testing$Salary)^2)
+root = sqrt((tree.pred-testing$Salary)^2)
 ```
 
 To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 6 is the ideal number of terminal nodes because the cross-validation misclassification error is the lowest at that point.
@@ -514,7 +514,7 @@ pred.pt.cv = predict(pt.cv, testing, type="vector")
 mean((pred.pt.cv-testing$Salary)^2)
 
 # root mean squared error
-sqrt(mean((pred.pt.cv-testing$Salary)^2))
+root2 = sqrt(mean((pred.pt.cv-testing$Salary)^2))
 
 ```
 
