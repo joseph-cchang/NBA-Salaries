@@ -598,7 +598,7 @@ salary_prediction(m = model, points = 26.4, assists = 4.3, minutes = 35.8, turno
 
 Based on our prediction, his salary will be \$27,809,796, and his real salary is \$28,103,550.
 
-# [Conclusion]{.ul}
+# [**Conclusion**]{.ul}
 
 After merging and cleaning our dataset, we found that the 8 variables with the highest correlation with the players' salary were Points per game, Assists per game, minutes per game, turnovers per game, minutes percent, free-throws-attempted, offensive-box-plus-minus, and value_over_replacement. The result makes sense because it shows that the amount of time players spend on the court is highly correlated with their salary. However, we also found it interesting that the players' salary is weighted more towards their offensive statistics such as points per game and assists per game rather than their defensive statistics such as rebounds per game, steals per game, and blocks per game. In the sport of basketball, if a player can produce more on the offensive side, he will earn more money.
 
