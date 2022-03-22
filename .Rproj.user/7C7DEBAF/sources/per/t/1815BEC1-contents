@@ -1,0 +1,320 @@
+---
+title: "PSTAT 126 Final Assignment"
+author: "Joseph Chang"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+# knit options
+knitr::opts_chunk$set(echo = F,
+                      results = 'markup',
+                      fig.width = 4,
+                      fig.height = 3,
+                      fig.align = 'center',
+                      message = F,
+                      warning = F)
+
+# packages
+library(tidyverse)
+library(broom)
+library(faraway)
+library(modelr)
+library(tinytex)
+```
+
+\newpage
+### Background
+
+By now it is widely recognized that air quality impacts health, but this was not always the case. The file `pollution.csv` contains data from an early observational study investigating the relationship between specific pollutants and mortality in U.S. cities. Variable descriptions and units are recorded in the metadata file `pollution-metadata.csv`. All measurements were taken for the period 1959 - 1961.
+
+> McDonald, G.C. and Schwing, R.C. (1973). Instabilities of Regression Estimates Relating Air Pollution to Mortality. Technometrics, 15: 463-481.
+
+```{r, echo = T}
+# read in data and show example rows
+pollution <- read_csv('pollution.csv')
+head(pollution, 3)
+```
+
+In this data the presence of pollutants is reported as *relative pollution potential*, which is calculated by scaling emissions (tons per day per square kilometer) by a dispersion factor based on local conditions (mixing, wind, area, and the like).
+
+\newpage
+### Questions
+
+Respond to each question or task immediately below the prompt in a concise manner -- aim to give as direct a response as possible. Following this, provide, if appropriate, any supporting information helpful in understanding your answer; please limit such supporting information to a brief paragraph and minimal R output (possibly one table, a few simple calculations, or a plot). 
+
+Please include all codes used together with your answer in the .Rmd file (so that they appear in the appendix), but control the code chunks so that *only codes and output that are referenced in your written answers are shown*.
+
+
+1. Construct a plot of the marginal relationships among the raw data and comment briefly on the plot (identify any notable features).
+
+```{r}
+pollution %>% pivot_longer(cols = c(Precip, Educ, NonWhite, NOX, SO2)) %>%
+ggplot(aes(x = value, y = Mort)) +
+  facet_wrap(~ name, scales = 'free_x') +
+  geom_point() +
+  labs(x = 'Value', y = 'Mortality')
+```
+
+Based from the graph, it appears that Percip and NonWhite have a linear trend. Educ appears to be in a negative linear trend, while NOX has no noticeable or immediate trend. SO2 appears to be in a log pattern, so a transformation may be needed. 
+
+
+2. Estimate the association between mortality and each of the two pollutants. Describe how you obtained your estimates and be sure to give proper interpretations.
+
+```{r}
+fit <- lm(Mort ~ Precip + Educ + NonWhite + NOX + log(SO2), data = pollution)
+summary(fit)
+```
+
+Using a fit model, I can find the association between mortality and the two pollutants by using the summary of fit and locating the estimate portion of the summary. For every increase in 1 ton per day per km of NOX, mortality decreases by 0.09677. For every increase of 1 ton per day per km of SO2, mortality increases by 15.96124.
+
+
+3. How many lives could be saved each year by curbing emissions? Answer each of the questions below.
+
+    i. Estimate the reduction in mortality rate associated with a 50% relative decrease in sulfur dioxide emissions.
+
+##### set mort_0 as the original model
+mort_0 = 944.17471 + 1.432242(percip) - 13.35817(Educ) + 3.43512(NonWhite) - 0.09677(NOX) + 15.96124 * log(SO2) + $\epsilon_i$.
+
+##### set mort_1 as the changed model, where SO2 emissions is reduced 50%
+mort_1 = 944.17471 + 1.432242(percip) - 13.35817(Educ) + 3.43512(NonWhite) - 0.09677(NOX) + 15.96124 * log(SO2/2) + $\epsilon_i$.
+
+##### Find the difference between mort_0 and mort_1
+mort_0 - mort_1 = 15.96log(SO2) - 15.96log(SO2/2) = 15.96log(SO2) - 15.96log(SO2) + 15.96log(2) = 15.96log(2) = 4.8044.
+
+Using the fit model from problem 2 along with coefficients for each parameter, I created two equations. mort_0 represents the original model and mort_1 represents the 50% decrease in sulfur dixoide emissions. If I subtract mort_0 and mort_1, only the paramater for SO2 and the coefficients remains. If further simplified, I get an answer of 4.8044.
+
+
+    ii. Estimate the reduction in mortality rate associated with a 50% relative decrease in emissions of oxides of nitrogen.
+
+##### original model
+mort_0 = 944.17471 + 1.432242(percip) - 13.35817(Educ) + 3.43512(NonWhite) - 0.09677(NOX) + 15.96124 * log(SO2) + $\epsilon_i$
+
+##### new model with 50% decrease in NOX
+mort_1 = 944.17471 + 1.432242(percip) - 13.35817(Educ) + 3.43512(NonWhite) - (0.09677/2) * (NOX) + 15.96124 * log(SO2) + $\epsilon_i$
+
+##### difference between mort_0 and mort_1
+mort 0 - mort 1 = 0.09677 NOX - (0.09677/2) NOX = 0.09677 - 0.048385  =  0.048385 * NOX.
+
+Using the same strategy from part i, I did the same thing with mort_0 and mort_1, leaving me with an answer of 0.048385 * NOX
+    
+    
+    iii. Construct a visualization that conveys the estimated potential lives saved by reducing SO2 emissions. Provide a brief description of your plot.
+    
+```{r}
+# create a new column and establish data for reduced SO2 emissions called SO2_half
+pollution <- pollution %>% mutate(SO2_half = SO2/2)
+new_fit <- lm(Mort ~ Precip + Educ + NonWhite + NOX + log(SO2_half), data = pollution)
+
+# predict the new_mortality rate 
+without <- pollution %>% select(-SO2)
+pollution$new_mortality <- predict(new_fit, newdata= without)
+
+# graph for SO2 vs Mort (original data)
+original <- pollution %>% ggplot(aes(x = SO2, y = Mort)) +
+  geom_point() +  labs(x = 'SO2', y = 'Mort') 
+
+# graph for reduced SO2 emissions and the new mortality rate
+updated <- pollution %>% ggplot(aes(x = SO2_half, y = new_mortality)) +
+  geom_point() +  labs(x = 'SO2_half', y = 'New Mort') 
+
+original
+updated
+
+# establish a new column/ data for difference in mortality rate/ # of lives saved
+ pollution <- pollution %>% mutate(diff = new_mortality - Mort) 
+ 
+# convey above using a graph
+ pollution %>% pivot_longer(cols = new_mortality) %>%
+ggplot(aes(x = SO2_half, y = diff)) +
+  facet_wrap(~ name, scales = 'free_x') +
+  geom_point() +
+  labs(x = 'New SO2 emissions', y = 'Difference in mortality')
+ 
+```
+Note: negative difference means death rate decreased. Less people died and more people lived.
+
+Based from the graph, it appears some city's new mortality rate did not decrease, but rather increased. Overall, it seems like there were more city that had a decreased mortality rate than that of increased. Therefore, one could assume that reduced SO2 emissions does save lives. There does not seem to be any noticeable patterns.
+
+
+4. The [EPA reports a 94% decrease in the national average sulfur dioxide concentration between 1980 and 2020](https://www.epa.gov/air-trends/sulfur-dioxide-trends).
+
+    i. Estimate the number of lives saved each year among the current population by this reduction, all else being equal.
+
+```{r}
+# confidence interval 
+fit2 <- lm(Mort ~ Precip + Educ + NonWhite + NOX + log(0.06*SO2), data = pollution)
+confint(fit2)
+
+# graph to show 
+pred_df_pollution <- pollution %>%
+  data_grid(.model = fit2) %>%
+  add_predictions(model = fit2)
+
+predict(fit, newdata = pred_df_pollution, interval = 'confidence', level = 0.95)
+
+pred_df_pollution_ci <- pred_df_pollution %>%
+  cbind(ci = predict(fit2, newdata = pred_df_pollution, 
+        interval = 'confidence', level = 0.95))
+
+original + geom_path(aes(y = pred), data = pred_df_pollution,
+              color = 'red') +
+  geom_ribbon(aes(ymin = ci.lwr, ymax = ci.upr,y = ci.fit),
+              data = pred_df_pollution_ci, fill = 'red',
+              alpha = 0.2) +
+  geom_smooth(method = 'lm', se = T, fill = 'blue', alpha =
+                0.2, linetype = 1)
+```
+
+##### original model
+mort_0 =  944.17471 + 1.432242(percip) - 13.35817(Educ) + 3.43512(NonWhite) - 0.09677(NOX) + 15.96124(SO2) + $\epsilon_i$.
+
+##### new model with 94% decrease in SO2 emissions
+mort_1 =  944.17471 + 1.432242(percip) - 13.35817(Educ) + 3.43512(NonWhite) - 0.09677(NOX) + 15.96124 * log(SO2 * (1-0.94)) + $\epsilon_i$.
+
+##### difference between mort_0 and mort_1
+mort_0 - mort_1 = 15.96log(SO2) - 15.96log(0.06*SO2) = 15.96log(SO2) - (15.96log(0.06) + 15.96log(SO2)) = 
+    15.96log(0.06) =   19.5 . 
+    
+    There is about 19.5 lives saved.
+    
+Based from the confidence interval, a one percentage increase in mortality is significantly associated with a change in 8.5943055 to 23.3281827 increase in SO2. Therefore, an estimate of 19.5 is within the confidence interval calculated above. 
+    
+    
+    ii. What implicit assumptions are made by using metropolitan-level data from 1959-1961 to calculate this estimate?
+  
+  One assumption is that the trend of Precip, Educ, NonWhite, NOX, and SO2 should all display similar trends in the years 1980-2020 as it was from 1959 to 1961. In other words, the pattern should hold across time.
+  
+  Another assumption is same trend for different location. Since each city represents its own data, and that the EPA's data is the national average, the trend of Precip, Educ, NonWhite, NOX, and SO2 should hold same for each of the two datas.
+  
+  Another assumption is same measurement condition and the same collection of data across time and space. The accuracy should be similar. From 1980-2020, there may be better collection of data due to technological advances. Thus, accuracy of measurement should be similar.
+
+    iii. Do you think these assumptions are reasonable?
+    
+Yes, these assumptions are reasonable because it is difficult to collect data from every metropolitan area. Additionally, collecting these data may be different because of technological advances as time goes on. Therefore, we must rely on assumptions in order for the data to be as close to error-free as possible.
+
+
+5. Which other variables, if any, seem associated with mortality? Comment briefly on any apparent associations.
+
+```{r}
+# based from problem 1
+pollution %>% pivot_longer(cols = c(Precip, Educ, NonWhite, NOX, SO2)) %>%
+ggplot(aes(x = value, y = Mort)) +
+  facet_wrap(~ name, scales = 'free_x', nrow=1) +
+  geom_point() +
+  labs(x = '', y = 'mortality')
+
+# based from problem 2
+fit <- lm(Mort ~ Precip + Educ + NonWhite + NOX + log(SO2), data = pollution)
+summary(fit)
+
+```
+
+Using hypothesis testing, we can check if there are variables associated with mortality. We set the following:
+$\beta_1$ = Precip.
+$\beta_2$ = Educ.
+$\beta_3$ = NonWhite.
+$\beta 4$ = NOX.
+$\beta 5$ = SO2.
+
+$$Ho: \beta_1 = \beta_2 = \beta_3 = \beta_4 = \beta_5 = 0$$ 
+$$Ha: \text{at least one is not 0} $$
+
+Based on the p-values from the hypothesis testing, we see that precip has 0.0418, Educ has 0.0602, nonWhite has 5.95e-7, NOX has 0.4595, and SO2 has 6.21e-5. With alpha set as 0.05, we can see that only the p-values for NOX and Educ are greater than alpha. As a result, we will fail to reject NOX and Educ, and reject all others, concluding that only Precip, NonWhite, and SO2 are statistically significant and have an association with mortality. NonWhite and Precip seem to have a linear association, while SO2 has a log pattern.
+
+
+6. Are any of the cities in the dataset unusual relative to the others? If so, in what way, and do these cities affect your conclusions?
+
+```{r}
+# check for unusual outliers
+studentize <- function(resid, n, p){ resid*sqrt((n - p - 1)/(n - p - resid^2))}
+  n <- nrow(model.matrix(fit))
+  p <- ncol(model.matrix(fit)-1) 
+
+fit_df <- augment(fit, pollution) %>% 
+  mutate(obs_ix = row_number(), .ext.std.resid = studentize(.std.resid, n, p))
+  
+plot <- fit_df %>% 
+  pivot_longer(cols = c(.ext.std.resid, .hat, .cooksd)) %>%
+  ggplot(aes(x = obs_ix, y = abs(value))) +
+  facet_wrap(~ name, scales = 'free_y', nrow=3) +
+  geom_point() +
+  geom_hline(aes(yintercept = 0)) +
+  labs(x = 'observation', y = 'residual') + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  geom_point() 
+
+unusual_obs <- fit_df %>% 
+  pivot_longer(cols = c(.hat,.ext.std.resid, .cooksd)) %>%
+  group_by(name) %>%
+  slice_max(order_by = abs(value), n=1) %>%
+  ungroup() 
+
+# highlight the unusual_obs in yellow
+plot+geom_point(data=unusual_obs, color='yellow')
+
+# print the unusual_obs cities
+unusual_obs['City']
+
+```
+
+First, I will check The cities that are unusual. After highlighting those points in yellow, I printed the unusual_obs cities. Finally, I can conclude that the unusual cities are New Orleans and Los Angeles. Although these cities are the outliers, they don't seem to have too big of an influence on the data and trend. Since these are only 2 cities in a sample size of 50, there is not a big effect on the data. 
+
+
+7. Are any of the variables besides mortality closely related with one another? How might this affect your analysis (if at all)?
+
+```{r}
+# check to see if Precip and the rest are related
+pollution %>% pivot_longer(cols = c(Educ, NonWhite, NOX, SO2)) %>%
+ggplot(aes(x = value, y = Precip)) +
+  facet_wrap(~ name, scales = 'free_x', nrow=1) +
+  geom_point() +
+  labs(x = '', y = 'Precipitation')
+# It appears NonWhite has somewhat of a linear pattern, and given a few outliers, NOX has a linear pattern with Precip
+
+
+# check to see if Education and the rest are related
+pollution %>% pivot_longer(cols = c(Precip, NonWhite, NOX, SO2)) %>%
+ggplot(aes(x = value, y = Educ)) +
+  facet_wrap(~ name, scales = 'free_x', nrow=1) +
+  geom_point() +
+  labs(x = '', y = 'Education')
+# It appears Precipitation has a negative and log trend with Educ
+
+
+# check to see if NonWhite and the rest are related  
+pollution %>% pivot_longer(cols = c(Precip, Educ, NOX, SO2)) %>%
+ggplot(aes(x = value, y = NonWhite)) +
+  facet_wrap(~ name, scales = 'free_x', nrow=1) +
+  geom_point() +
+  labs(x = '', y = 'NonWhite')
+# It appears Precipitation has a linear trend with NonWhite
+
+
+# check to see if NOX and the rest are related 
+pollution %>% pivot_longer(cols = c(Precip, Educ, NonWhite, SO2)) %>%
+ggplot(aes(x = value, y = NOX)) +
+  facet_wrap(~ name, scales = 'free_x', nrow=1) +
+  geom_point() +
+  labs(x = '', y = 'NOX')
+# If excluded some outliers, it appears SO2 has very small trace of a linear trend with NOX
+
+# check to see if SO2 and the rest are related 
+pollution %>% pivot_longer(cols = c(Precip, Educ, NonWhite, NOX)) %>%
+ggplot(aes(x = value, y = SO2)) +
+  facet_wrap(~ name, scales = 'free_x', nrow=1) +
+  geom_point() +
+  labs(x = '', y = 'SO2')
+# If excluded some outliers, it appears NOX has very small trace of a linear trend with SO2
+
+# check correlations between variables
+pollution %>% select(-c(Mort, City,SO2_half,new_mortality,diff)) %>% cor() %>% round(5) 
+```
+
+To check if variables closely related to one another besides mortality, I used the plot based from problem 1. For each individual variable, I set one as the response and rest as the independent. Based from the plots visually, I determined that Precipitation and NonWhite, Precip and Educ, Precip and NOX, and SO2 and NOX all seem to have correlation. So, I used correlation to see if there were linear. It turns out that Precip and Educ have the highest correlation, even though it is a negative association, followed by Percip and NOX. Percipitation also has the most frequent association with other variables. Having closely related variables could affect the analysis by having or incomprehensive data. There will be interactive effects caused by both predictor variables and lead to the conclusion being invalid.
+
+
+\newpage
+## Code appendix
+
+```{r appendix, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

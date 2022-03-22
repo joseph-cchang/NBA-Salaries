@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1645058307780.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1712072959",
+    "id" : "CC028818",
+    "lastKnownWriteTime" : 1642827458,
+    "last_content_update" : 1642827458,
+    "path" : "~/Desktop/NBA-salaries/NBA_stats.txt",
+    "project_path" : "NBA_stats.txt",
+    "properties" : {
+        "cursorPosition" : "4,15",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "text"
+}

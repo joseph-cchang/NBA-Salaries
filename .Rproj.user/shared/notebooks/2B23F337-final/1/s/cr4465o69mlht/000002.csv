@@ -1,0 +1,6 @@
+"0","# check correlations between variables
+pollution %>% select(-c(Mort, City,SO2_half,new_mortality,diff)) %>% cor() %>% round(5) 
+"
+"2","Error in select(., -c(Mort, City, SO2_half, new_mortality, diff)) : 
+  object 'pollution' not found
+"

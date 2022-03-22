@@ -1,0 +1,646 @@
+---
+title: "PSTAT131 Final Project"
+author: "Joseph Chang, Tom Wei, Akul Bajaj"
+date: "March 15, 2022"
+output:
+  html_document:
+    code_folding: hide
+  pdf_document: default
+df_print: paged
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+# set global chunk options: images will be 7x5 inches
+knitr::opts_chunk$set(fig.width=7, fig.height=5, echo =TRUE, message=FALSE, warning = FALSE)
+options(digits = 4)
+```
+
+```{r}
+library(ggplot2)                     
+library(GGally)
+library(tidyverse)
+library(glmnet)
+library(knitr)
+library(dplyr)
+library(tidyverse)
+library(modelr)
+library(pander)
+library(corrplot)
+library(readxl)
+library(ISLR)
+library(tidymodels)
+library(ggthemes)
+library(naniar)
+library(ROCR)
+library(maptree)
+library(tree)
+library(factoextra)
+library(cluster)
+library(randomForest)
+```
+
+# [**Introduction**]{.ul}
+
+After a long nine to five at work, many people across the United States look to unwind with a bottle of beer and one of the world's greatest pastimes: live sports! From October to May we watch basketball stars such as LeBron James dropping dimes, or Stephen Curry splashing from threes. But what factors lead these players to have such success in the basketball industry, and specifically what factors affect the salaries of NBA players, which can range from 377,645 all the way to 45,780,966 USD? In our project we use statistical variables such as "PPG", or "Offensive Rating" from the 2020-2021 season in different statistical machine learning models to predict the salaries of NBA players in the 2021-2022 season.
+
+We apply several methods of statistical machine learning such as linear regression, logistic regression, ridge & lasso, decision trees, and random forest to the data in order to predict the salary of a player based on eight main predictors, carefully selected after several calculations of correlation and observations. We plan to explore the benefits and detriments of each model, by observing statistics such as mean squared error, area under the curve, and line of best fit. We hope you enjoy it!
+
+Before we dive into the data, the definitions of the variables should be clarified first. The eight definitions that are bolded will be the predictors we focus on in the project. The rest will be definitions of all other variables that appear in our dataset.
+
+It is worth noting that some of the players in the data may be repeated because of a mid-season trade or buyout.
+
+**PPG: Points per game.**
+
+**APG: Assists per game.**
+
+**MPG: Minutes per game.**
+
+**TPG: Turnovers per game.**
+
+**Minutes Percent: percentage of team minutes used by a player while he was on the floor.**
+
+**Free throws attempted: total number of free throws attempted.**
+
+**Offensive box plus minus: estimates a basketball player's offensive contribution to the team when that player is on the court.**
+
+**Value Over Replacement: estimates each player's overall contribution to the team, measured vs. what a theoretical "replacement player" would provide, where the "replacement player" is defined as a player on minimum salary or not a normal member of a team's rotation.**
+
+RPG: Rebounds per game.
+
+SPG: Steals per game.
+
+BPG: Blocks per game.
+
+Usage Rate: an estimate of the percentage of team plays used by a player while he was on the floor.
+
+Free throw %: Free throw percentage.
+
+Three-point %: Three point shot percentage.
+
+Effective shooting %: a statistic that adjusts field goal percentage to account for the fact that three-point field goals count for three points while field goals only count for two points. Its goal is to show what field goal percentage a two-point shooter would have to shoot at to match the output of a player who also shoots three-pointers.
+
+True shooting %: an advanced statistic that measures a player's efficiency at shooting the ball. It is intended to more accurately calculate a player's shooting than field goal percentage, free throw percentage, and three-point field goal percentage taken individually.
+
+Versatility Index: measures a player's ability to produce in more than one statistic. The metric uses points, assists, and rebounds. The average player will score around a five on the index, while top players score above 10. Calculated by: Versatility Index Formula=[(PPG)\*(RPG)\*APG)]\^(0.333)
+
+Offensive Rating: measures an individual player's efficiency at producing points for the offense.
+
+Defensive rating: measures an individual player's efficiency at preventing the other team from scoring points.
+
+Player Efficiency Rating: a method of determining a player's impact on the game by measuring their per-minute performance. Rather than judging a player solely on their stats, their PER is a much more thorough performance indicator. It details a player and compares their value to that of other players in the league.
+
+Win shares: a player statistic which attempts to divvy up credit for team success to the individuals on the team.
+
+Box Plus Minus: estimates a basketball player's contribution to the team when that player is on the court.
+
+## Data Importation
+
+First, we read and import the data that we downloaded and collected. The first dataset is an excel file from a website called NBA stuffer, which contains many commonly-used basketball statistics for every player during the 2020-2021 season. The second dataset is from kaggle and contains other basketball statistics not found in the first dataset. The last dataset is from basketball-reference.com and lists out every players' salary in the 2021-2022 season.
+
+```{r}
+# NBA stuffer
+X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics <- read_excel("2020-2021 NBA Stats  Player Box Score  Advanced Metrics.xlsx")
+bball_stats <- as.data.frame(X2020_2021_NBA_Stats_Player_Box_Score_Advanced_Metrics)
+my_colnames <- c('Rank', 'Player', 'Team', 'Position', 'Age', 'Games_Played', 'MPG', 'Minutes_percent', 'Usage_Rate' , 'Turnover_rate', 'free_throws_attempted', 'Free_throw_percent', '2-point_field goals_attempted', '2-point_percent', '3-point_field_goals_attempted', 'three_point_percent', 'effective_shooting_percent' , 'True_shooting_percent', 'PPG', 'RPG', 'Total_rebound_percent', 'APG', 'Assist_percent', 'SPG' ,'BPG', 'TPG', 'Versatility_Index', 'Offensive_Rating' , 'Defensive_Rating')
+colnames(bball_stats) <- my_colnames
+new_bball_stats <- bball_stats[-1,-1]
+
+# Kaggle
+labels <- c('Player','Position', 'Age', 'Team', 'Games', 'Minutes_played', 'Player_Efficiency_Rating', 'true_shooting_percent', '3-point_attempt_rate', 'free-throw_attempt_rate', 'offensive_rebound_ percentage', 'defensive_rebound_percentage', 'total_rebound_percentage', 'assist_percentage', 'steal_percentage', 'block_percentage', 'turnover_percentage', 'usage_rate', 'offensive_win_shares', 'defensive_win_shares', 'win_shares','win_shares_per_48_minutes', 'Offensive_Box_Plus_Minus', 'Defensive_Box_Plus_Minus','Box_Plus_Minus','Value_Over_Replacement')
+data_advanced <- read.csv("nba2021_advanced.csv", col.names = labels, na= "XXX")
+
+# Basektball-reference salaries
+labels2 <- c('Rank', 'Player', 'Salary', 'Use', 'Guaranteed')
+salaries <- read.csv("nba_salaries_21-22.csv", col.names = labels2)
+```
+
+## Data Cleaning
+
+This is where we merge the three datasets while also removing duplicated columns and columns that show unrelated/insignificant statistics. In addition, this unified dataset changes all columns (except Player and Salary) to dbl form for more convenient use later on. Small remark: a new column called Total_Minutes (total minutes a player is on the court) was added to see if it has any effect on data.
+
+```{r}
+combine <- inner_join(new_bball_stats, data_advanced, by = 'Player') %>% 
+  inner_join(salaries, by = 'Player')
+  
+selection <- subset(combine, select= -c(2:4,29:33,35:45,54,56:57)) 
+less_data <- selection %>% relocate(c(PPG,RPG,APG,SPG,BPG,TPG), .before = MPG)
+
+conversion <- less_data[,2:35] %>% mutate_if(is.character,as.numeric) %>% mutate(Total_Minutes = Games_Played*MPG)
+conversion1 <- conversion %>% add_column(less_data$Player) 
+names(conversion1)[names(conversion1) == "less_data$Player"] <- "Player"
+conversion2 <- conversion1 %>% relocate((Player), .before = Games_Played)
+conversion3 <- conversion2 %>% relocate((Total_Minutes), .before=MPG)
+```
+
+## Filtering Data
+
+Next, we will filter out players who did not see the court often or were injured during the season. Keeping such players would skew the data and produce unnecessary outliers. Here, players with total minutes less than 336 minutes and played less than 7 games were removed. (The entire season consisted of 72 games. 10% of 72 games is around 7 games. A full game is 48 minutes, so 7 full games is 336 minutes). In summary, a player had to play in 90% of the games to be considered. (The previous code was used to reduce columns, here we reduce rows).
+
+```{r}
+reduced_data <- conversion3 %>% filter(Games_Played >= 7 & Total_Minutes >= 336) %>% select(Player:Salary) %>% drop_na()
+```
+
+## Correlation to Salary
+
+Since there are still a lot of predictors (columns) left, we need a way to show only the important ones. The rest can be omitted. Thus, we used a correlation plot and found correlation coefficients as related to salary.
+
+```{r, fig.width = 10, fig.height= 10}
+par(cex=1)
+my_cor <- reduced_data %>% select_if(is.numeric) %>% drop_na() %>% cor() %>% round(3) 
+corrplot(my_cor, method = "circle", type = "upper", cex.pch=10, tl.cex = 1)
+
+salarycor <- reduced_data %>% select(Salary, Games_Played:Value_Over_Replacement) %>% drop_na()
+corr_Salary <- cor(salarycor)[,"Salary"]
+corr_Salary[which(corr_Salary > 0.6)]
+```
+
+Based from the correlation, we filtered so only correlations with Salary above 0.6 are kept, meaning we will only use the following 8 predictors : PPG, APG, MPG, TPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, and Value_Over_Replacement.
+
+From the 8 variables, we have an interesting finding that the offensive statistics are more related to the salary than the defensive statistics. For example, points per game and assists per game are more correlated with salary than rebounds per game, steals per game, and blocks per game. In addition, offensive box plus minus and free throws attempted are also two important indicators of players' offensive ability.
+
+Furthermore, variables such as minutes per game, minutes percent, and turnovers per game suggest that player involvement on the court is also related to their salary. Even though turnovers per game may sound like a negative indicator of a player's ability, it is not true. Only when a player's importance is valuable for a team, can he make more turnovers on the court. If a player is not valuable for a team, he will not see time on the court and may be benched by the coach. In other words, these explain why turnovers per game, minutes per game, and minutes percent are all useful indicators that correlate with salary.
+
+## Final dataset and Histograms
+
+Our final dataset will be called our_data, and it has our players, their salaries, and the 8 predictors we want. To visualize this data, we used a histogram to plot Salary as well as scatter plots of Salary vs the 8 predictors.
+
+```{r}
+our_data <- reduced_data %>% select(Player, Salary, PPG, APG, MPG, TPG, MPG, Minutes_percent, free_throws_attempted, Offensive_Box_Plus_Minus, Value_Over_Replacement)
+
+hist(our_data$Salary, main = "Histogram of NBA salaries 2021-2022", xlab="Salary Amount", breaks = "Sturges", labels = TRUE)
+
+op=par(mfrow=c(2,2))
+plot(our_data$Salary, our_data$PPG, main="Scatterplot of Salary vs. PPG",
+   xlab="Salary", ylab="PPG", pch=19)
+abline(lm(our_data$PPG~our_data$Salary), col="red")
+
+plot(our_data$Salary, our_data$APG, main="Scatterplot of Salary vs. APG",
+   xlab="Salary", ylab="APG", pch=19)
+abline(lm(our_data$APG~our_data$Salary), col="red")
+
+plot(our_data$Salary, our_data$MPG, main="Scatterplot of Salary vs. MPG",
+   xlab="Salary", ylab="MPG", pch=19)
+abline(lm(our_data$MPG~our_data$Salary), col="red")
+
+plot(our_data$Salary, our_data$TPG, main="Scatterplot of Salary vs. TPG",
+   xlab="Salary", ylab="TPG", pch=19)
+abline(lm(our_data$TPG~our_data$Salary), col="red")
+
+plot(our_data$Salary, our_data$Minutes_percent, main="Scatterplot of Salary vs. Minutes Percent", xlab="Salary", ylab="Minutes Percent", pch=19)
+abline(lm(our_data$Minutes_percent~our_data$Salary), col="red")
+
+plot(our_data$Salary, our_data$free_throws_attempted, main="Scatterplot of Salary vs. Free Throws Attempted", xlab="Salary", ylab="Free Throws Attempted", pch=19)
+abline(lm(our_data$free_throws_attempted~our_data$Salary), col="red")
+
+plot(our_data$Salary, our_data$Offensive_Box_Plus_Minus, main="Scatterplot of Salary vs. Offensive Box Plus Minus", xlab="Salary", ylab="Offensive Box Plus Minus", pch=19)
+abline(lm(our_data$Offensive_Box_Plus_Minus~our_data$Salary), col="red")
+
+plot(our_data$Salary, our_data$Value_Over_Replacement, main="Scatterplot of Salary vs. Value Over Replacement", xlab="Salary", ylab="Value Over Replacement", pch=19)
+abline(lm(our_data$Value_Over_Replacement~our_data$Salary), col="red")
+```
+
+From the scatterplots and the lines of best fits we can tell that salary tends to have a positive relationship with the 8 variables we chose above. In other words, the more time a player stays on the court and the greater a player's offensive abilities are, the higher the salary he will earn.
+
+# Data splitting
+
+In our models we need testing and training sets. To split, the training data will be 80% of the data and testing will be 20%. Here we define them and will proceed with these in mind.
+
+```{r}
+set.seed(3152022)
+fit_data <- our_data[-1] 
+new_data <- resample_partition(fit_data, p = c(test=0.2, train=0.8)) 
+training <- as.data.frame(new_data$train)
+testing <- as.data.frame(new_data$test)
+```
+
+# [Exploratory Data Analysis]{.ul}
+
+Our linear regression, logistic regression, ridge and lasso, regression decision tree, and random forest use the same training dataset, which contains 309 observations. The testing dataset contains 77 observations, for a total of 386 players.
+
+\
+
+# [Model Building]{.ul}
+
+## Model 1 : Linear regression
+
+In this linear regression, there were a total of 3 fitted models. The first model consists of all 8 predictors. The second fit contains predictors that the summary of the first fit found significant. The third fit consists of predictors that the second fit found significant.
+
+```{r}
+fit1 <- lm(Salary ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
+summary(fit1)
+```
+
+Here is the respective training and testing mean squared error for fit1 (all predictors)
+
+```{r}
+train.predict1 <- predict(fit1, training)
+test.predict1 <- predict(fit1, testing)
+mean((train.predict1-training$Salary)^2)
+mean((test.predict1-testing$Salary)^2)
+```
+
+Here is the fit2 model and summary, which takes predictors that were significant from fit1.
+
+```{r}
+fit2 <- lm(Salary ~ PPG + APG + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data= training)
+summary(fit2)
+```
+
+Here is the training and testing mean squared error respectively for fit2
+
+```{r}
+train.predict2 <- predict(fit2, training)
+test.predict2 <- predict(fit2, testing)
+mean((train.predict2-training$Salary)^2)
+mean((test.predict2-testing$Salary)^2)
+```
+
+Here is the fit3 model and summary, which takes predictors that were significant from fit2.
+
+```{r}
+fit3 <- lm(Salary ~ PPG + APG, data= training)
+summary(fit3)
+```
+
+Here is the training and testing mean squared error respectively for fit3
+
+```{r}
+train.predict3 <- predict(fit3, training)
+test.predict3 <- predict(fit3, testing)
+mean((train.predict3-training$Salary)^2)
+mean((test.predict3-testing$Salary)^2)
+```
+
+Based on the 3 fitted models, the largest R-squared came from fit1 at around 0.65. Next, we investigated the model with the least MSE for training and testing, which was also fit1.
+
+## Model 2 : Logistic regression
+
+Since the eight variables are numeric variables and is not the best to use in a logistic regression model, we will create a new predictor called "salarygreater", which tests whether a player's salary is greater than the average salary of the league. By producing this new binomial predictor, we can use logistic regression to analyze the salary condition of the players from a new perspective.
+
+First, we will calculate the average salary of all players, and create the new binary variable "salarygreater" in the training dataset to test whether a certain player's salary is greater than the average. If the player's salary is greater than the average, it will show "1" meaning yes; if not, it will show "0".
+
+```{r}
+mean_train_salary <- mean(training$Salary)
+training_salarymean <- training[] %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
+```
+
+Next, we will fit a logistic regression on the "salarygreater" in the training dataset. After that, we will predict based on the "majority rule": if the predicted probability is greater than 0.5, classify the observation as 1, otherwise, classify it as 0.
+
+```{r}
+training_logit <- glm(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, family = 'binomial')
+
+salarymean_pred_training <- predict(training_logit, training_salarymean, type="response")
+train_maj_rule <- ifelse(salarymean_pred_training > 0.5, 1,0)
+```
+
+Next, we will define a function called "calc_error_rate" and use it to calculate the error rate of the of the logistic model on the training dataset, which is created above.
+
+```{r}
+calc_error_rate <- function(predicted.value, true.value){
+  return(mean(true.value!=predicted.value))}
+calc_error_rate(train_maj_rule, training_salarymean$salarygreater)
+```
+
+Similarly, we will do the same process on the testing dataset to predict based on the logistic model created above and calculate the test error.
+
+```{r}
+testing_salarymean <- testing %>% mutate(salarygreater=factor(ifelse(Salary >= mean_train_salary, 1, 0), levels=c(0, 1)))
+salarymean_pred_testing <- predict(training_logit,  testing_salarymean, type="response")
+test_maj_rule2 <- ifelse(salarymean_pred_testing > 0.5, 1,0)
+calc_error_rate(test_maj_rule2, testing_salarymean$salarygreater)
+```
+
+Finally, we can plot an ROC curve and calculate the area under the curve (AUC) for the test data to see the performance of the logistic regression model.
+
+```{r}
+pred <- prediction(salarymean_pred_testing, testing_salarymean$salarygreater)
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(perf, col = 2, lwd = 3, main = "ROC curve")
+abline(0, 1)
+```
+
+AUC is also shown below.
+
+```{r}
+auc <- performance(pred, "auc")@y.values[[1]]
+auc
+```
+
+From the result of the error rate and the AUC curve, we can conclude that the eight variables we choose above are good predictors of the "salarygreater" variables. Hence, we may continue our analysis of the variables in the later project later by using different methods.
+
+## Model 3 : Ridge and Lasso
+
+#### Training, Testing for Ridge/ Lasso
+
+We chose to do ridge & lasso because it eliminates overfitting through regularization. To start, we defined the training and testing sets for this process. In each training and testing, we had to split as x.train and y train as well as x.test and y.test. The x in front of the training/testing represents all predictors except the response variable (Salary). The y represents the response (Salary)
+
+```{r}
+x <- model.matrix(Salary ~ ., data= fit_data)
+y <- fit_data$Salary
+
+x.train <- as.matrix(training[,-1])
+y.train <- as.matrix(training$Salary)
+x.test <- as.matrix(testing[,-1])
+y.test <- as.matrix(testing$Salary)
+```
+
+#### Ridge regression
+
+We first define the list of lambda values the model can take, and used 5-folds cross-validation on the training data to predict the coefficients of each predictor.
+
+```{r}
+lambda.list.ridge = 1000 * exp(seq(0, log(1e-5), length = 100))
+ridge.mod = cv.glmnet(x.train, y.train, alpha=0,lambda=lambda.list.ridge, nfolds=5)
+ridge.pred_1 = predict(ridge.mod, s = ridge.mod$lambda.min, type="coefficients", newx=x.test)
+```
+
+Then, we find the mean squared error for this ridge regression model.
+
+```{r}
+ridge.pred=predict(ridge.mod, s = ridge.mod$lambda.min, newx=x.test)
+mean((ridge.pred-y.test)^2)
+```
+
+Next, we will use cross-validation to choose the best tuning parameter (best lambda) and its show its plot
+
+```{r}
+set.seed(3152022)
+cv.out.ridge = cv.glmnet(x.train, y.train, alpha= 0)
+plot(cv.out.ridge)
+abline(v=log(cv.out.ridge$lambda.min), col = "blue", lwd=3, lty=2)
+
+bestlam = cv.out.ridge$lambda.min
+```
+
+Here is the mean squared error for best lambda.
+
+```{r}
+ridge.pred=predict(ridge.mod, s = bestlam, newx=x.test)
+mean((ridge.pred-y.test)^2)
+```
+
+As seen, the MSE for the best lambda is lower than the MSE for the 5-fold cross validation. As a result, we will consider the best lambda model.
+
+As such, we will print out the coefficients of the best lambda. The glmnet function selects the minimum lambda and that lambda is used to predict the coefficients.
+
+```{r}
+out = glmnet(x,y,alpha=0)
+predict(out, type="coefficients", s=bestlam)
+```
+
+These coefficients represent the distance of each predictor to the response variable of Salary. We can determine that free_throws_attempted was the least and Value_Over_Replacement was highest. Since the MSE of testing for the best lambda value is less than the MSE of testing for the 5-folds CV, we will use the best lambda value MSE of testing which is around 7.172e+13.
+
+#### Lasso regression
+
+Next, we fit a lasso model using the glmnet function with alpha as 1 with 5 folds cross validation. We will plot the model to see if coefficients can be zero.
+
+```{r}
+set.seed(3152022)
+lambda.list.lasso = 2 * exp(seq(0, log(1e-4), length = 100))
+lasso.mod <- glmnet(x.train, y.train, alpha=1, lambda=lambda.list.lasso, nfolds = 5)
+plot(lasso.mod, xvar="lambda", label=TRUE)
+```
+
+We see that there are some at zero or close to it, and some are as high as above 3 million.
+
+In this step, we will perform cross validation and find MSE of testing data.
+
+```{r}
+cv.out.lasso = cv.glmnet(x.train,y.train,alpha=1)
+plot(cv.out.lasso)
+abline(v=log(cv.out.lasso$lambda.min), col="red", lwd=3, lty=2)
+
+bestlam2 = cv.out.lasso$lambda.min
+lasso.pred = predict(lasso.mod, s = bestlam2, newx = x.test)
+mean((lasso.pred-y.test)^2)
+```
+
+Like the ridge regression, we use this step to print out the coefficients of the best lambda. The glmnet function selects the minimum lambda and that lambda is used to predict the coefficients of the lasso model.
+
+```{r}
+out = glmnet(x, y, alpha=1, lambda=lambda.list.lasso)
+lasso.coef = predict(out, type="coefficients", s=bestlam)
+lasso.coef
+```
+
+Just like for ridge, we can determine that turnovers_per_game was the least and Value_Over_Replacement was highest. The MSE of testing in lasso is around 7.171e+13, which is lower than the one given in the ridge regression.
+
+## Model 4 : Regression Decision Tree
+
+Here, we start by creating a decision tree. Using its summary, we can see what variables were used in tree construction, number of terminal nodes, and residual information.
+
+```{r}
+tree_our_data=tree(Salary~. , data = our_data) 
+summary(tree_our_data)
+```
+
+Here we plot our decision tree using two different tree plotting functions, plot and draw tree. Both trees show the same idea and have 9 terminal nodes.
+
+```{r}
+plot(tree_our_data)
+text(tree_our_data, pretty = 0, cex = 0.4, col = "blue")
+title("Decision tree on whole data", cex = 1)
+draw.tree(tree_our_data, nodeinfo=TRUE, cex = 0.4)
+```
+
+The first split in this tree is on points per game. To be exact the split is on 14.06 points per game. The second splits are on minutes percent and free throws attempted, specifically at 44.65 for minutes percent and 203 for free throws attempted. The terminal nodes range from 7 observations to 143 observations and the total deviance explained is 69.1%.
+
+Now, we fit the regression decision tree model to the training set and plot the tree using the draw.tree() command.
+
+```{r}
+# Fit model on training set
+tree.nba = tree(Salary~. , data = training)
+draw.tree(tree.nba, nodeinfo=TRUE, cex = 0.5)
+title("Regression Tree Built on Training Set")
+```
+
+We can see in the summary that the tree modeled by the training set has 9 terminal nodes, and the previous tree had 9 terminal nodes as well.
+
+Though the trees have the same number of terminal nodes in the training set, the first split is on free throws attempted this time. To be exact the split is on 179.5 free throws attempted. The second splits are on 12.5 points per game and an offensive_box_plus_minus value of 5.05. The terminal nodes range from 5 observations to 115 observations and the total deviance explained is 74.7%.
+
+```{r}
+summary(tree.nba)
+```
+
+Now here we do a prediction on the test set using the predict() command. We specify type='vector' because we are working with a regression decision tree. Then we calculate the mean squared error which is 9.12e+13 and the root mean squared error which is 9549613.
+
+```{r}
+# Predict on test set
+tree.pred = predict(tree.nba, testing, type="vector")
+mean((tree.pred-testing$Salary)^2)
+root = sqrt((tree.pred-testing$Salary)^2)
+```
+
+To calculate the best number of terminal nodes we do a 10-fold cross validation. We plot size versus cross-validation error rate and add a vertical line at the minimum error. From this we can see 6 is the ideal number of terminal nodes because the cross-validation misclassification error is the lowest at that point.
+
+```{r}
+set.seed(3152022)
+
+# K=10-Fold cross validation
+cv = cv.tree(tree.nba, K=10)
+
+# the tree with smaller size
+best.cv = min(cv$size[cv$dev == min(cv$dev)])
+
+# Plot size vs. cross-validation error rate
+ plot(cv$size , cv$dev, type="b", xlab = "Number of leaves, \'best\'",
+      ylab = "CV Misclassification Error", col = "red", main=" 10-fold CV")
+ abline(v=best.cv, lty=2)
+
+# Add lines to identify complexity parameter
+min.error = which.min(cv$dev) # Get minimum error index
+abline(h = cv$dev[min.error],lty = 2)
+```
+
+We can now plot the pruned tree with 6 terminal nodes, which implies the mean squared error (MSE) is lowest when the number of terminal nodes is 6.
+
+```{r}
+# Prune tree
+pt.cv = prune.tree(tree.nba, best=best.cv)
+
+# # Plot pruned tree
+plot(pt.cv)
+text(pt.cv, pretty=0, col = "blue", cex = .5)
+title("Pruned tree of size 6")
+```
+
+The first split in this pruned tree is on free throws attempted, just like on the training set tree. To be exact the split is on 179.5 free throws attempted. The second splits are on points per game and offensive_box_plus_minus, specifically on 12.05 points per game and on an offensive contribution score of 5.05. The third and final splits are on a minutes percent of 44.65 and at MPG, or average minutes per game, of 30.2.
+
+```{r}
+# Predict on test set
+pred.pt.cv = predict(pt.cv, testing, type="vector")
+
+# mean squared error
+mean((pred.pt.cv-testing$Salary)^2)
+
+# root mean squared error
+root2 = sqrt(mean((pred.pt.cv-testing$Salary)^2))
+
+```
+
+When we predict on the test set, the mean squared error is lower (7.46e+13) than that of the non-pruned tree; the pruned tree with 6 terminal nodes is a better model.
+
+## Model 5 : Random forest
+
+First, we will fit a random forest model on the "salarygreater" variable which is whether a player's salary is greater than the average salary of the league.
+
+```{r}
+rf_our_data = randomForest(salarygreater ~ PPG + APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training_salarymean, mtry=3, ntree=500, importance=TRUE)
+rf_our_data                        
+```
+
+Next, we will check the error rate on the test dataset.
+
+```{r}
+yhat.rf = predict (rf_our_data, newdata = testing_salarymean)
+# Confusion matrix
+rf.err = table(pred = yhat.rf, truth = testing_salarymean$salarygreater) 
+test.rf.err = 1 - sum(diag(rf.err))/sum(rf.err) 
+test.rf.err
+```
+
+The test set error rate is shown above.
+
+Then we will get a plot with decreasing order of importance based on Model Accuracy and Gini value.
+
+```{r}
+varImpPlot(rf_our_data, sort=T, main="Variable Importance for rf_our_data", n.var=5, cex = 0.8)
+```
+
+From the graphs we can see that among all the trees in the random forest, PPG is the most important variable in terms of Model Accuracy and Gini index.
+
+# [Predicting Salaries]{.ul}
+
+This is the final step: predicting a player's salary. We will go through the models and look for the best model to fit by finding the lowest MSE.
+
+We determined that in the linear regression, both testing and training MSE were lower than the rest of the models. We will use fit1 because it has the lowest training MSE and highest R-squared.
+
+```{r}
+salary_prediction <- function(m, points, assists, minutes, turnovers, minutes_p, free_throws, offense_plus_minus, value){
+
+  pre_new <- predict(m, data.frame(PPG = points, APG = assists, MPG= minutes, TPG =  turnovers, Minutes_percent = minutes_p, free_throws_attempted = free_throws, Offensive_Box_Plus_Minus = offense_plus_minus, Value_Over_Replacement = value))
+
+  msg <- paste("PPG:", points, ", APG:", assists, ", MPG:", minutes, ", TPG:", turnovers, ", Minutes_percent:", minutes_p, ", free_throws_attempted:", free_throws, ", Offensive_Box_Plus_Minus:", offense_plus_minus, ", Value_Over_Replacement:", value ," ==> Expected Salary: $", format(round(pre_new), big.mark = ","), sep = "")
+  
+  print(msg)
+}
+
+model <- lm(Salary ~ PPG+ APG + MPG + TPG + Minutes_percent + free_throws_attempted + Offensive_Box_Plus_Minus + Value_Over_Replacement, data = training)
+```
+
+We test for a player such as Danny Green.
+
+```{r}
+our_data[which(our_data$Player == "Danny Green"),]
+
+salary_prediction(m = model, points = 9.5, assists = 1.7, minutes = 28, turnovers = 0.96, minutes_p = 58.4, free_throws = 40, offense_plus_minus = -1.1, value = 0.2)
+```
+
+Based on our prediction, his salary will be \$8,352,181, and his real salary is \$10,000,000.
+
+We test again for a player such as Bradley Beal
+
+```{r}
+our_data[which(our_data$Player == "Bradley Beal"),]
+
+salary_prediction(m = model, points = 31.3, assists = 4.4, minutes = 35.8, turnovers = 3.12, minutes_p = 74.5, free_throws = 459, offense_plus_minus = 6.3, value = 1.5)
+```
+
+Based on our prediction, his salary will be around \$32 million, and his real salary is \$34,502,130.
+
+We test again for a player such as Jayson Tatum
+
+```{r}
+our_data[which(our_data$Player == "Jayson Tatum"),]
+
+salary_prediction(m = model, points = 26.4, assists = 4.3, minutes = 35.8, turnovers = 2.67, minutes_p = 74.5, free_throws = 340, offense_plus_minus = 4.6, value = 1.4)
+```
+
+Based on our prediction, his salary will be \$27,809,796, and his real salary is \$28,103,550.
+
+# [**Conclusion**]{.ul}
+
+After merging and cleaning our dataset, we found that the 8 variables with the highest correlation with the players' salary were Points per game, Assists per game, minutes per game, turnovers per game, minutes percent, free-throws-attempted, offensive-box-plus-minus, and value_over_replacement. The result makes sense because it shows that the amount of time players spend on the court is highly correlated with their salary. However, we also found it interesting that the players' salary is weighted more towards their offensive statistics such as points per game and assists per game rather than their defensive statistics such as rebounds per game, steals per game, and blocks per game. In the sport of basketball, if a player can produce more on the offensive side, he will earn more money.
+
+After that, we started our analysis on NBA players' salary by plotting the histograms and the scatter plot of salary with the 8 variables listed above to have a first glance of the relationship between salary and the 8 variables we will analyze later in the project. Having some acknowledgement of our dataset, we reach an exploratory data analysis and split our data into training and testing sets.
+
+Next, we fit our data into different models: linear regression model, logistics regression model, Ridge & Lasso regression model, regression decision tree, and random forest.
+
+Here is a list of conclusions we developed from each model:
+
+[Linear regression:]{.ul} There were 3 fitted models. The first fit showed all predictors vs Salary, the second showed significant predictors from the first, and the third showed significant predictors from the second. We concluded that the largest R-squared came from fit1 at around 0.65. The fit1 also had the least training MSE at 3.409e+13 and the least testing MSE at 7.244e+13 of the three fits in linear regression.
+
+[Logistic regression:]{.ul} Since all the eight variables we use are numeric variables, we created a new binary predictor called "Salarygreater". After we get the error rate of about 0.2 for both training and testing dataset, and the AUC of about 0.8226, we concluded that the eight variables we choose are good predictors of the "Salarygreater" variable.
+
+[Ridge regression:]{.ul} We originally tested the lambda value on 5-folds cross validation, but found using the best tuning parameter was better at predicting coefficients because testing MSE for best lambda at 7.172e+13 is less than the testing MSE for the 5-folds CV at 7.175e+13. We determined coefficients for free_throws_attempted was the least at 9350 and Value_Over_Replacement was highest at 3025371. These numbers represent the distance of each predictor to the response variable of Salary.
+
+[Lasso regression:]{.ul} The least coefficient for lasso was turnovers_per_game at -882401 and the greatest was Value_Over_Replacement at 3852047. The testing MSE is around 7.171e+13, which is lower than the one given in the ridge regression.
+
+[Regression Decision Tree:]{.ul} We originally created a regression based decision tree that had 9 terminal nodes. We then fit the model to our training set and again the tree had 9 terminal nodes, or leaves, with the mean squared error of 9.12e+13. We then did a ten fold cross validation to see that the ideal number of leaves was 6 leaves. The variables used in this tree's construction included "free_throws_attempted", "PPG", "Minutes_percent", "Offensive_Box_Plus_Minus" and "MPG". The mean squared error after pruning was 7.46e+13. We can see that the pruned tree is a better predictor because it has a lower mean squared error.
+
+[Random Forest:]{.ul} We fit the random forest model again to the "Salarygreater" to get a error rate of about 0.2. In addition, according to the Model Accuracy and Gini index, we find out that PPG is the most important variable, which also corresponds to our finding in the linear regression method.
+
+The final step of this project is to predict the players' salary. As an example, we took Danny Green's, Bradley Beal's, Jayson Tatum's statistics to predict their salary. We tested and found our model to be somewhat accurate, as our predicted values differ from the actual by around only 1-2 million dollars. Overall, we can conclude that our model is only 65% accurate and can still be used to predict the majority of players' salaries correctly.
+
+\
+We would like to acknowledge Katie Coburn for her contributions and assistance with this project and taking the time, effort, and energy out of her busy schedules to help us. Additionally, we would like to thank Michael La, Maria Gao, Vicky Cui, and Lihao Xiao.
+
+# References
+
+We used these sites to find our data:
+
+<https://www.kaggle.com/umutalpaydn/nba-20202021-season-player-stats?select=nba2021_advanced.csv>
+
+<https://www.nbastuffer.com/2020-2021-nba-player-stats/>
+
+<https://www.basketball-reference.com/contracts/players.html>
+
+# Appendix
+
+```{r get-labels, echo = FALSE}
+labs = knitr::all_labels()
+labs = setdiff(labs, c("setup", "get-labels"))
+```
+
+```{r all-code, ref.label=labs, eval=FALSE}
+```
