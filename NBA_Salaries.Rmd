@@ -1,5 +1,5 @@
 ---
-title: "PSTAT131 Final Project"
+title: "PSTAT131 Project"
 author: "Joseph Chang, Tom Wei, Akul Bajaj"
 date: "March 15, 2022"
 output:
